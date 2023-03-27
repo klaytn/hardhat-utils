@@ -1,0 +1,51 @@
+<html>
+<head>
+  <link rel="stylesheet" href="static/github-markdown.css">
+  <style>
+  .markdown-body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 45px;
+  }
+  @media (max-width: 767px) {
+    .markdown-body {
+      padding: 15px;
+    }
+  }
+  </style>
+</head>
+<body onload="init()">
+
+  <script src="static/marked.min.js"></script>
+  <script>
+    function init() {
+      var el = document.getElementById("contract-docs");
+      el.innerHTML = marked.parse(el.innerHTML);
+    }
+  </script>
+
+<div id="contract-docs" class="markdown-body">
+# {{ it.packageName }}
+
+{{ it.packageDesc }}
+
+{{ it.packageRepo }}
+
+{{ @if (it.hasContractDocs) }}
+## Contract docs
+- [All in one page](./_all.html)
+{{ @each(it.contractNames) => name }}
+- [{{ name }}](./{{ name }}.html)
+{{ /each }}
+{{ /if }}
+
+{{ @if (it.hasCoverage) }}
+## Coverage test result
+- [Coverage](./coverage/index.html)
+{{ /if }}
+</div>
+
+</body>
+</html>

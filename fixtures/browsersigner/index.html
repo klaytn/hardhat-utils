@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <title>hardhat-utils-browser-signer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+    .targetacquired { display: none; }
+    .connected { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Sign a transaction with your browser wallet</h1>
+      <hr>
+
+      <div class="row">
+        <div class="col-md-12">
+          <strong>Target network:</strong>
+          <pre id="target-net"></pre>
+          <strong>Transaction:</strong>
+          <pre id="unsigned-tx"></pre>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row targetacquired">
+        <div class="col-sm-3">
+          <button class="btn btn-primary disconnected" id="btn-connect">Connect wallet</button>
+          <button class="btn btn-danger connected" id="btn-disconnect">Disconnect wallet</button>
+        </div>
+        <div class="col-sm-9 connected">
+          <strong>Connected network:</strong> <span id="connected-network"></span><br>
+          <strong>Selected account:</strong> <span id="selected-account"></span><br>
+          <strong>Balance:</strong> <span id="selected-balance"></span><br>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row targetacquired">
+        <div class="col-sm-3 connected">
+          <button class="btn btn-primary connected" id="btn-send">Send transaction</button>
+        </div>
+        <div class="col-sm-9 connected">
+          <strong>Sent txhash:</strong> <a href="#" id="sent-txhash"></a><br>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
+    <script type="text/javascript" src="./main.js"></script>
+  </body>
+</html>
