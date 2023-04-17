@@ -80,7 +80,7 @@ async function getRPCUrl(attachRemote: boolean): Promise<string> {
     throw PluginError("Cannot run explorer for 'hardhat' network; Use --network localhost");
   }
   if (!attachRemote && name != "localhost") {
-    throw PluginError("Cannot run explorer for 'localhost' network; Use --attach-remote if you must");
+    throw PluginError("Cannot run explorer for other than 'localhost' network; Use --attach-remote if you must");
   }
 
   if (name == "localhost") {
