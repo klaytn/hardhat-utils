@@ -80,7 +80,7 @@ task(TASK_ABI_UPLOAD, "Upload function and event signatures")
   .addPositionalParam("name", "Contract name", "")
   .setAction(async (taskArgs) => {
     const { byte4, sigdb, name } = taskArgs;
-    if (!_.some(byte4, sigdb)) {
+    if (!_.some([byte4, sigdb])) {
       throw PluginError("No site selected (example: --byte4 --sigdb)");
     }
 
