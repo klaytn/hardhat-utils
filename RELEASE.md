@@ -2,12 +2,13 @@
 
 ## Tag rc
 
-1. Run `git tag v0.0.1-rc.1`
-2. `git push --tag`
+1. Update version in `package.json`
+2. Make PR to main branch
+3. Once merged, run `git tag v0.0.1-rc.1` on main
+4. `git push --tag`
 
 ## Release rc
 
-1. Update version in `package.json`
-2. Make a PR for 1
-3. Merge PR
-4. Run `release_rc.sh`. Make sure this is run after the PR is merged.
+1. Make a PR for 1
+2. Merge PR
+3. Run `release_rc.sh`. Make sure this is run after the PR is merged.
