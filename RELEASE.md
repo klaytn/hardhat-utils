@@ -4,7 +4,7 @@
 
 1. Update version in `package.json`
 2. Make PR to main branch
-3. Once merged, run `git tag v0.0.1-rc.1`
+3. Once merged, run `git tag v0.0.1-rc.1` on main
 4. `git push --tag`
 
 ## Release rc
