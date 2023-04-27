@@ -4,13 +4,11 @@
 
 1. Update version in `package.json`
 2. Make PR to dev branch
-3. Once merged, run `release_rc.sh` on dev
-4. This will create a sign-off PR (do not merge yet)
+3. Once merged, run `release_rc.sh` on dev (this will create a sign-off PR. DO NOT merge this PR yet)
 
-## Tag rc for the first time (e.g., v0.0.2-rc.2)
+## Tag the following rc (e.g., v0.0.2-rc.2)
 
-1. Run `release_rc.sh` on dev
-2. This will append to the sign-off PR
+1. Run `release_rc.sh` on dev (this will automatically append to the sign-off PR. DO NOT merge this PR yet)
 
 ## Release rc
 
