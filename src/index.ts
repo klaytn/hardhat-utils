@@ -1,6 +1,6 @@
 import { extendEnvironment } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { PluginError } from "./helpers";
+import { getWallet, getWallets, PluginError } from "./helpers";
 
 import "./type-extensions";
 
@@ -12,6 +12,11 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
     throw PluginError("hardhat-deploy plugin not loaded. In your hardhat.config.js, please require or import 'hardhat-deploy' before hardhat-utils");
   }
   // Because hardhat-dodoc is a non-critical feature, don't check here.
+
+  // Extend hre.ethers
+  // See https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-ethers/src/internal/index.ts
+  hre.ethers.getWallet = getWallet;
+  hre.ethers.getWallets = getWallets;
 });
 
 export * from "./abi";

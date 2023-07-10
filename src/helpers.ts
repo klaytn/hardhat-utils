@@ -3,6 +3,8 @@ import { BigNumber } from "ethers";
 import fs from "fs";
 import { HardhatPluginError } from "hardhat/plugins";
 import _ from "lodash";
+import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
+import { HardhatNetworkAccountConfig, HardhatNetworkHDAccountsConfig } from "hardhat/types";
 
 import "./type-extensions";
 
@@ -137,4 +139,52 @@ export async function currentNetworkEIP3085(): Promise<any> {
     rpcUrls: [url],
   }
   return param;
+}
+
+// Maps address => privateKey
+let knownWallets: { [key: string]: string } = {};
+
+function createWallet(privateKey: string): ethers.Wallet {
+  return new hre.ethers.Wallet(privateKey);
+}
+
+export async function getWallet(address: string): Promise<ethers.Wallet> {
+  if (_.isEmpty(knownWallets)) {
+    // Load accounts
+    let wallets = await getWallets();
+    _.forEach(wallets, (wallet) => {
+      knownWallets[wallet.address] = wallet.privateKey;
+    });
+  }
+  return createWallet(knownWallets[address]);
+}
+
+export async function getWallets(): Promise<ethers.Wallet[]> {
+  // hre.network.config.accounts can be one of:
+  // - HardhatNetworkAccountsConfig =
+  //   | HardhatNetworkHDAccountsConfig  -- (1)
+  //   | HardhatNetworkAccountConfig[]   -- (2)
+  // - HttpNetworkAccountsConfig
+  //   | "remote"                        -- (3)
+  //   | string[]                        -- (4)
+  //   | HttpNetworkHDAccountsConfig     -- (5)
+  // See https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-core/src/types/config.ts
+  let accountsConfig = hre.network.config.accounts;
+  if (accountsConfig == "remote") { // (3)
+    throw PluginError(`Cannot create Wallets for 'remote' accounts of the network '${hre.network.name}'`);
+  } else if (_.isArray(accountsConfig)) {
+    if (accountsConfig.length == 0) {
+      return [];
+    } else if (_.isString(accountsConfig[0])) { // (4)
+      let array = accountsConfig as string[];
+      return _.map(array, (elem) => createWallet(elem));
+    } else { // (2)
+      let array = accountsConfig as HardhatNetworkAccountConfig[];
+      return _.map(array, (elem) => createWallet(elem.privateKey));
+    }
+  } else {
+    let hdconfig = accountsConfig as HardhatNetworkHDAccountsConfig; // (1) and (5)
+    let normalized = normalizeHardhatNetworkAccountsConfig(hdconfig);
+    return _.map(normalized, (elem) => createWallet(elem.privateKey));
+  }
 }
