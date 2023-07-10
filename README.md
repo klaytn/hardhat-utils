@@ -83,10 +83,8 @@ Generate HTML and markdown docs describing the compiled contracts. See also: `ab
 
 ### `explorer`
 
-Launches the [BlockScout](https://github.com/blockscout/blockscout) block explorer for current network. See also: `deploy`.
-
-- `hh explorer` launches BlockScout containers, if one is not running.
-- `hh explorer --stop` stops and removes the running BlockScout containers.
+Launch the [BlockScout](https://github.com/blockscout/blockscout) block explorer for current network. See also: `deploy`.
+- `hh explorer` launches the BlockScout container that fetches block data from the JSON-RPC.
 
 ### `faucet`
 

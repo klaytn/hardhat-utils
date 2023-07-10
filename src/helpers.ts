@@ -1,5 +1,5 @@
 import type ethers from "ethers";
-import { BigNumber } from "ethers";
+import child_process from "child_process";
 import fs from "fs";
 import { HardhatPluginError } from "hardhat/plugins";
 import _ from "lodash";
@@ -187,4 +187,36 @@ export async function getWallets(): Promise<ethers.Wallet[]> {
     let normalized = normalizeHardhatNetworkAccountsConfig(hdconfig);
     return _.map(normalized, (elem) => createWallet(elem.privateKey));
   }
+}
+
+let dockerComposePath: string | null = null;
+
+// Find docker compose command, if not set.
+// Prefers 'docker compose' (V2) over 'docker-compose' (V1)
+// see https://docs.docker.com/compose/migrate/ for the difference.
+function findDockerCompose(): string {
+  if (dockerComposePath) {
+    return dockerComposePath;
+  }
+
+  try {
+    child_process.execSync("docker compose version", {stdio: 'pipe'});
+    return "docker compose";
+  } catch (e) {
+  }
+
+  try {
+    child_process.execSync("docker-compose --version", {stdio: 'pipe'});
+    return "docker-compose";
+  } catch (e) {
+  }
+
+  throw new Error("docker compose not installed. Follow https://docs.docker.com/compose/install/");
+}
+
+export function runDockerCompose(args: string, opts: any = {}) {
+  let dockerCompose = findDockerCompose();
+  let cmd = `${dockerCompose} --ansi never ${args}`
+  opts.stdio = 'inherit';
+  child_process.execSync(cmd, opts);
 }

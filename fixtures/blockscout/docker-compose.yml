@@ -21,7 +21,26 @@ services:
     container_name: 'blockscout'
     links:
       - db:database
-    command: bash -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        mkdir -p logs/prod
+
+        if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
+          while ! nc -z db 5432; do
+            sleep 0.1
+          done
+          echo "Migrating database"
+          bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()" >> logs/prod/migrate.log
+          echo "Starting server"
+          bin/blockscout daemon
+          sleep infinity
+        else
+          bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()"
+          bin/blockscout start
+        fi
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     env_file:
