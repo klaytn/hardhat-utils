@@ -1,0 +1,50 @@
+version: '3'
+services:
+  CN:
+    hostname: CN
+    image: ${DOCKER_IMAGE:-klaytn/klaytn:latest}
+    restart: "no"
+    ports:
+      - ${DOCKER_LISTEN:-8545}:8551
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        mkdir -p /klaytn/log
+        cp /input/nodekey /klaytn/nodekey
+        cp -r /input/keystore /klaytn/keystore
+        if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
+          kcn init --datadir /klaytn /input/genesis.json 2>>/klaytn/log/kcnd.out
+        else
+          kcn init --datadir /klaytn /input/genesis.json
+        fi
+
+        nohup -- kcn \
+          --datadir /klaytn \
+          --netrestrict "127.0.0.1/32" --nodiscover --bootnodes "127.0.0.1" \
+          --ipcpath /klaytn/klay.ipc \
+          --rpc --rpcvhosts "*" --rpcaddr "0.0.0.0" --rpcport 8551 \
+          --rpcapi "admin,debug,eth,governance,istanbul,klay,net,personal,rpc,txpool,web3" \
+          2>>/klaytn/log/kcnd.out &
+
+        set +e
+        echo "waiting for node to start.."
+        while [ ! -e /klaytn/klay.ipc ]; do
+          sleep 0.1
+        done
+        echo "node started."
+
+        ken attach /klaytn/klay.ipc --exec \
+          "personal.listAccounts.forEach(function(a){ personal.unlockAccount(a, '', 0) })" >/dev/null
+        if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
+          ken attach /klaytn/klay.ipc --exec "debug.verbosity(2)" >/dev/null # WARN
+          tail -n 0 -F /klaytn/log/kcnd.out # do not print previous logs
+        else
+          ken attach /klaytn/klay.ipc --exec "debug.verbosity(4)" >/dev/null # DEBUG
+          tail -F /klaytn/log/kcnd.out
+        fi
+
+    volumes:
+      - ./input:/input
+

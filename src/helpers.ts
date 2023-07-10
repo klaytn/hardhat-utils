@@ -201,13 +201,15 @@ function findDockerCompose(): string {
 
   try {
     child_process.execSync("docker compose version", {stdio: 'pipe'});
-    return "docker compose";
+    dockerComposePath = "docker compose";
+    return dockerComposePath;
   } catch (e) {
   }
 
   try {
     child_process.execSync("docker-compose --version", {stdio: 'pipe'});
-    return "docker-compose";
+    dockerComposePath = "docker-compose";
+    return dockerComposePath;
   } catch (e) {
   }
 

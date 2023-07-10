@@ -114,6 +114,13 @@ Encrypt a private key to a keystore.json. See also: `keystore-decrypt` and `mnem
 Convert [KIP-3 v4 keystore](https://github.com/klaytn/kips/blob/main/KIPs/kip-3.md) to v3 keystore. See also: `keystore-decrypt`.
 - `hh keystore-kip3 v4.json` prints a JSON keystore v4.
 
+### `klaytn-node`
+
+Launch a klaytn consensus node. See also: `deploy`.
+- `hh klaytn-node` starts a klaytn private chain. Other scripts can refer to this node via `--network localhost`.
+- `hh klaytn-node --base-fee` sets the gas fee to 0, allowing any account to send transactions without the native coin.
+- `hh --docker-image-id klaytn/klaytn:v1.10.0` launches the specific version of klaytn container image from https://hub.docker.com/r/klaytn/klaytn or from local images.
+
 ### `mnemonic`
 
 Print addresses and private keys derived from a [BIP-39 mnemonic](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) and [BIP-32 path](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki). See also: `accounts`, `faucet`, `keystore-decrypt` and `keystore-encrypt`.
