@@ -83,10 +83,8 @@ Generate HTML and markdown docs describing the compiled contracts. See also: `ab
 
 ### `explorer`
 
-Launches the [BlockScout](https://github.com/blockscout/blockscout) block explorer for current network. See also: `deploy`.
-
-- `hh explorer` launches BlockScout containers, if one is not running.
-- `hh explorer --stop` stops and removes the running BlockScout containers.
+Launch the [BlockScout](https://github.com/blockscout/blockscout) block explorer for current network. See also: `deploy`.
+- `hh explorer` launches the BlockScout container that fetches block data from the JSON-RPC.
 
 ### `faucet`
 
@@ -115,6 +113,13 @@ Encrypt a private key to a keystore.json. See also: `keystore-decrypt` and `mnem
 
 Convert [KIP-3 v4 keystore](https://github.com/klaytn/kips/blob/main/KIPs/kip-3.md) to v3 keystore. See also: `keystore-decrypt`.
 - `hh keystore-kip3 v4.json` prints a JSON keystore v4.
+
+### `klaytn-node`
+
+Launch a klaytn consensus node. See also: `deploy`.
+- `hh klaytn-node` starts a klaytn private chain. Other scripts can refer to this node via `--network localhost`.
+- `hh klaytn-node --base-fee` sets the gas fee to 0, allowing any account to send transactions without the native coin.
+- `hh --docker-image-id klaytn/klaytn:v1.10.0` launches the specific version of klaytn container image from https://hub.docker.com/r/klaytn/klaytn or from local images.
 
 ### `mnemonic`
 

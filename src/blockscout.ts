@@ -1,10 +1,10 @@
 import axios, { AxiosError } from "axios";
-import child_process from "child_process";
 import { task } from "hardhat/config";
 import { HttpNetworkConfig } from "hardhat/types";
 import _ from "lodash";
 import path from "path";
 import process from "process";
+import { runDockerCompose } from "./helpers";
 
 import { PluginError, sleep } from "./helpers";
 import "./type-extensions";
@@ -14,21 +14,14 @@ export const TASK_EXPLORER = "explorer";
 task(TASK_EXPLORER, "Launch blockscout explorer")
   .addOptionalParam("host", "HTTP hostname", "0.0.0.0")
   .addOptionalParam("port", "HTTP port", "4000")
-  .addFlag("restart", "Restart container if there is one currently running")
-  .addFlag("stop", "Stop containers and exit")
+  .addFlag("debug", "Print debug logs")
   .addFlag("attachRemote", "Allow attach to remote RPC endpoint (may incur costs)")
   .addOptionalParam("explorerVersion", "Blockscout version (currently only supports 4.x.y)", "4.1.8")
   .setAction(async (taskArgs) => {
-    const { host, port, stop, restart, attachRemote, explorerVersion } = taskArgs;
+    const { host, port, debug, attachRemote, explorerVersion } = taskArgs;
 
     const dir = path.resolve(__dirname, "../fixtures/blockscout");
     process.chdir(dir);
-
-    // stop container ASAP
-    if (stop) {
-      stopServer();
-      return;
-    }
 
     const rpcUrl = await getRPCUrl(attachRemote);
     const url = `http://localhost:${port}`;
@@ -38,41 +31,23 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
       'DOCKER_TAG': explorerVersion,
       'DOCKER_LISTEN': `${host}:${port}`,
       'DOCKER_DISABLE_TRACER': _.toString(disableTracer),
+      "DOCKER_DEBUG": debug ? "1" : "0",
     }
     _.assign(process.env, extraEnvs);
     console.log('[+] Using env:', extraEnvs);
+    console.log('[+] Open in the browser:', url);
 
-    // Start containers
-    if (restart) {
-      stopServer();
-    }
-    startServer();
-
-    // Wait for server
-    const ok = await waitServer(url)
-    if (!ok) {
-      stopServer();
-      throw PluginError("Cannot connect to explorer");
-    }
-    console.log('Blockscout explorer is running. To stop:');
-    console.log('\n  npx hardhat explorer --stop\n');
-
-    // Source code verify
-    console.log("[+] Uploading source code of deployed contracts..");
+    // Having an empty SIGINT handler prevents this task to quit on Ctrl+C.
+    // This task is supposed to quit after docker-compose down.
+    process.on('SIGINT', () => {});
     try {
-      await verifyBatch(url)
-    } catch {
-      console.log('[+] Failed to upload source code.. skipping');
+      // --force-recreate to remove old database and start over
+      runDockerCompose("up --force-recreate -d db");
+      runDockerCompose("up --force-recreate blockscout");
+    } catch (e) {
+      runDockerCompose("down");
     }
   });
-
-
-function startServer() {
-  child_process.execFileSync("docker-compose", ["up", "-d"], {stdio: 'inherit'});
-}
-function stopServer() {
-  child_process.execFileSync("docker-compose", ["down"], {stdio: 'inherit'});
-}
 
 async function getRPCUrl(attachRemote: boolean): Promise<string> {
   const name = hre.network.name;
@@ -113,46 +88,4 @@ async function shouldDisableTracer(): Promise<boolean> {
     console.log("Cannot recognize debug_traceTransaction error:", e);
     return true; // Otherwise disable by default.
   }
-}
-
-async function waitServer(url: string, maxRetry: number = 10): Promise<boolean> {
-  process.stdout.write(`[+] Waiting for ${url} to be online.. `);
-
-  while (maxRetry--) {
-    try {
-      const ret = await axios.get(url);
-      if (ret.status == 200) {
-        break;
-      } else {
-        console.log(`ret.status ret.statusText`);
-      }
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        console.log(e.code);
-      } else {
-        throw e;
-      }
-    }
-
-    await sleep(3000);
-    process.stdout.write('Retrying.. ');
-  }
-  if (maxRetry == 0) {
-    return false
-  }
-
-  console.log(`Server is up!`);
-  console.log(`\n  Go to ${url} in your browser.\n`);
-  return true
-}
-
-async function verifyBatch(url: string) {
-  // hardhat-deploy's etherscan-verify task will control upload speed
-  // to obey rate limit. Therefore we run multiple commands in parallel.
-  const deployments = await hre.deployments.all();
-  const promises = [];
-  for (const name of _.keys(deployments)) {
-    promises.push(hre.run("etherscan-verify", { apiUrl: url, contractName: name }));
-  }
-  await Promise.all(promises);
 }
