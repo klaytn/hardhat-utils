@@ -118,7 +118,7 @@ Convert [KIP-3 v4 keystore](https://github.com/klaytn/kips/blob/main/KIPs/kip-3.
 
 Launch a klaytn consensus node. See also: `deploy`.
 - `hh klaytn-node` starts a klaytn private chain. Other scripts can refer to this node via `--network localhost`.
-- `hh klaytn-node --base-fee` sets the gas fee to 0, allowing any account to send transactions without the native coin.
+- `hh klaytn-node --base-fee 0` sets the gas fee to 0, allowing any account to send transactions without the native coin.
 - `hh --docker-image-id klaytn/klaytn:v1.10.0` launches the specific version of klaytn container image from https://hub.docker.com/r/klaytn/klaytn or from local images.
 
 ### `mnemonic`
@@ -154,6 +154,13 @@ Upload ABI to online database sites. See also: `abi` and `smart-flatten`.
 - `hh upload-abi --byte4` submits ABIs of all compiled contracts to https://www.4byte.directory/
 - `hh upload-abi --sigdb` submits ABIs of all compiled contracts to https://openchain.xyz/signatures
 - `hh upload-abi --sigdb Counter` submits ABI for a specific contract.
+
+## hardhat runtime environment extension
+
+Adds new methods to `hre` on top of `@nomiclabs/hardhat-ethers`.
+
+- `hre.ethers.getWallet(address: string): Promise<ethers.Wallet>`: Similar to `hre.ethers.getSigner()` but returns a Wallet with the private key.
+- `hre.ethers.getWallets(): Promise<ethers.Wallet[]>`: Similar to `hre.ethers.getSigners()` but returns Wallets with the private keys.
 
 ## Usage
 
@@ -206,6 +213,9 @@ find ./keys/*.json -exec hh keystore-kip3 {} {} \;  # batch convert in-place
 # Launch blockscout explorer for local network
 # Requires docker-compose and docker
 hh explorer
-hh explorer --restart
-hh explorer --stop
+
+# Launch klaytn kcn for local network
+# Requires docker-compose and docker
+hh klaytn-node
+hh klaytn-node --base-fee 0 --hardfork magma --docker-image-id klaytn/klaytn:v1.9.1
 ```
