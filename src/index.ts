@@ -1,6 +1,6 @@
 import { extendEnvironment } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getWallet, getWallets, PluginError } from "./helpers";
+import { extendHardhatEthers, PluginError } from "./helpers";
 
 import "./type-extensions";
 
@@ -13,10 +13,8 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   }
   // Because hardhat-dodoc is a non-critical feature, don't check here.
 
-  // Extend hre.ethers
-  // See https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-ethers/src/internal/index.ts
-  hre.ethers.getWallet = getWallet;
-  hre.ethers.getWallets = getWallets;
+  // Lazy extend the `hre.ethers` object using the ES6 object Proxy
+  hre.ethers = new Proxy(hre.ethers, extendHardhatEthers);
 });
 
 export * from "./abi";
