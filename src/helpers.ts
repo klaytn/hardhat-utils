@@ -2,7 +2,8 @@ import type ethers from "ethers";
 import child_process from "child_process";
 import fs from "fs";
 import { HardhatPluginError } from "hardhat/plugins";
-import _ from "lodash";
+import _, {over} from "lodash";
+import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 import { HardhatNetworkAccountConfig, HardhatNetworkHDAccountsConfig } from "hardhat/types";
 
@@ -140,6 +141,56 @@ export async function currentNetworkEIP3085(): Promise<any> {
   }
   return param;
 }
+
+// propOverrideProxyHandler is an ES6 ProxyHandler that addsa several readonly properties.
+//
+// See https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-ethers/src/internal/index.ts
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+// See node_modules/typescript/lib/lib.es2015.proxy.d.ts
+type propOverrides = {[prop: PropertyKey]: any };
+
+class propOverrideProxyHandler implements ProxyHandler<any> {
+  overrides: propOverrides;
+
+  constructor(overrides: propOverrides) {
+    this.overrides = overrides;
+  }
+
+  get(target: any, prop: PropertyKey, receiver: any) {
+    if (_.has(this.overrides, prop)) {
+      return this.overrides[prop];
+    }
+    return Reflect.get(target, prop, receiver);
+  }
+
+  getOwnPropertyDescriptor(target: any, prop: PropertyKey) {
+    if (_.has(this.overrides, prop)) {
+      return {
+        enumerable: true,
+        writable: false,
+        value: this.overrides[prop]
+      };
+    }
+    return Reflect.getOwnPropertyDescriptor(target, prop);
+  }
+
+  has(target: any, prop: PropertyKey) {
+    if (_.has(this.overrides, prop)) {
+      return true;
+    }
+    return Reflect.has(target, prop);
+  }
+
+  ownKeys(target: any): any[] {
+    let keys = Reflect.ownKeys(target);
+    return _.concat(keys, _.keys(this.overrides));
+  }
+}
+
+export const extendHardhatEthers: ProxyHandler<any> = new propOverrideProxyHandler({
+  "getWallet": getWallet,
+  "getWallets": getWallets,
+});
 
 // Maps address => privateKey
 let knownWallets: { [key: string]: string } = {};
