@@ -20,8 +20,15 @@ services:
           kcn init --datadir /klaytn /input/genesis.json
         fi
 
+        if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
+          VERBOSITY=2 # WARN
+        else
+          VERBOSITY=4 # DEBUG
+        fi
+
         nohup -- kcn \
           --datadir /klaytn \
+          --verbosity $$VERBOSITY \
           --netrestrict "127.0.0.1/32" --nodiscover --bootnodes "127.0.0.1" \
           --ipcpath /klaytn/klay.ipc \
           --rpc --rpcvhosts "*" --rpccorsdomain "*" --rpcaddr "0.0.0.0" --rpcport 8551 \
@@ -37,11 +44,10 @@ services:
 
         ken attach /klaytn/klay.ipc --exec \
           "personal.listAccounts.forEach(function(a){ personal.unlockAccount(a, '', 0) })" >/dev/null
+
         if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
-          ken attach /klaytn/klay.ipc --exec "debug.verbosity(2)" >/dev/null # WARN
           tail -n 0 -F /klaytn/log/kcnd.out # do not print previous logs
         else
-          ken attach /klaytn/klay.ipc --exec "debug.verbosity(4)" >/dev/null # DEBUG
           tail -F /klaytn/log/kcnd.out
         fi
 
