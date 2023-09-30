@@ -41,13 +41,13 @@ export interface FuncTaskCommonArgs {
   to: string;
 }
 
-interface ResolvedFuncArgs {
+interface ResolvedFuncCall {
   contract: ethers.Contract;
   sender: ethers.Signer;
   unsignedTx: any;
 }
 
-export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<ResolvedFuncArgs> {
+export async function resolveFuncCall(taskArgs: FuncTaskCommonArgs): Promise<ResolvedFuncCall> {
   const { name, func, args, from, to } = taskArgs;
 
   let contract: ethers.Contract;

@@ -4,7 +4,7 @@ import { Artifact } from "hardhat/types";
 import _ from "lodash";
 import {launchBrowserSigner} from "./browser";
 
-import { FromArgType, resolveFuncArgs, normalizeCallResult, normalizeRpcResult } from "./helpers";
+import { FromArgType, resolveFuncCall, normalizeCallResult, normalizeRpcResult } from "./helpers";
 import "./type-extensions";
 
 export const TASK_ADDR = "addr";
@@ -36,7 +36,7 @@ task(TASK_CALL, "Call a read-only function to a contract")
   .addVariadicPositionalParam("args", "call arguments", [])
   .setAction(async (taskArgs) => {
     const { func, raw, dec } = taskArgs;
-    const { contract, sender, unsignedTx } = await resolveFuncArgs(taskArgs);
+    const { contract, sender, unsignedTx } = await resolveFuncCall(taskArgs);
 
     let output = await sender.call(unsignedTx);
     if (raw) {
@@ -58,7 +58,7 @@ task(TASK_SEND, "Send a transaction to a contract")
   .addVariadicPositionalParam("args", "call arguments", [])
   .setAction(async (taskArgs) => {
 		const { unsigned, browser, dec } = taskArgs;
-		const { sender, unsignedTx } = await resolveFuncArgs(taskArgs);
+		const { sender, unsignedTx } = await resolveFuncCall(taskArgs);
 
 		if (unsigned) {
 			console.log(normalizeRpcResult(unsignedTx, { dec }));
