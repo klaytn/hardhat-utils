@@ -3,12 +3,13 @@ import type ethers from "ethers";
 import { task } from "hardhat/config";
 import { Artifact } from "hardhat/types";
 import _ from "lodash";
-import {PluginError} from "./helpers";
+import { decodeAbi, PluginError } from "./helpers";
 
 import "./type-extensions";
 
 export const TASK_ABI = "abi";
 export const TASK_ABI_UPLOAD = "upload-abi";
+export const TASK_ABI_DECODE = "decode-abi";
 
 task(TASK_ABI, "Get ABI of a contract")
   .addFlag("json", "print json abi")
@@ -145,3 +146,11 @@ async function uploadSigdb(abis: any[]): Promise<any> {
   const res = await axios.post(URL_sigdb, data);
   return JSON.stringify(res.data, null, 2);
 }
+
+task(TASK_ABI_DECODE, "Decode an ABI-encoded function call, event log, or error object")
+  .addPositionalParam("data", "Hex encoded data", "0x")
+  .setAction(async (taskArgs) => {
+    const { data } = taskArgs;
+    const decoded = await decodeAbi(data);
+    console.log(decoded);
+  });

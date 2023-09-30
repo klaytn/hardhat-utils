@@ -2,12 +2,12 @@ import type ethers from "ethers";
 import child_process from "child_process";
 import fs from "fs";
 import { HardhatPluginError } from "hardhat/plugins";
-import _, {over} from "lodash";
-import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
+import _ from "lodash";
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
-import { HardhatNetworkAccountConfig, HardhatNetworkHDAccountsConfig } from "hardhat/types";
+import { Artifact, HardhatNetworkAccountConfig, HardhatNetworkHDAccountsConfig } from "hardhat/types";
 
 import "./type-extensions";
+import {HardhatError} from "hardhat/internal/core/errors";
 
 export class FromArgType {
   static validate(argName: string, argumentValue: any): void {
@@ -67,6 +67,54 @@ export async function resolveFuncCall(taskArgs: FuncTaskCommonArgs): Promise<Res
   //console.log(utx);
 
   return { contract, sender, unsignedTx };
+}
+
+export interface DecodedAbi {
+  sig: string;
+  args: string[];
+}
+
+export async function decodeAbi(data: string): Promise<DecodedAbi | null> {
+  const artifactNames = await hre.artifacts.getAllFullyQualifiedNames();
+  const deployedNames = _.keys(await hre.deployments.all());
+  const names = _.uniq(_.concat(artifactNames, deployedNames));
+
+  for (const name of names) {
+    let artifact: Artifact;
+    try {
+      artifact = await hre.artifacts.readArtifact(name);
+    } catch {
+      artifact = await hre.deployments.getArtifact(name);
+    }
+
+    const iface = new hre.ethers.utils.Interface(artifact.abi);
+
+    try {
+      const tx = iface.parseTransaction({ data })
+      return {
+        sig: "function " + tx.signature,
+        args: normalizeCallResult(tx.args),
+      };
+    } catch (e: any) {
+      if (e.code != "INVALID_ARGUMENT") {
+        throw e;
+      }
+    }
+
+    try {
+      const err = iface.parseError(data);
+      return {
+        sig: "error " + err.signature,
+        args: normalizeCallResult(err.args),
+      };
+    } catch (e: any) {
+      if (e.code != "INVALID_ARGUMENT") {
+        throw e;
+      }
+    }
+  }
+
+  throw PluginError(`No matching ABI for signature '${data.substring(0,10)}'`)
 }
 
 export interface NormalizeOpts {
