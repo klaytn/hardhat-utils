@@ -1,0 +1,21 @@
+version: '3'
+services:
+  bundler:
+    hostname: bundler
+    image: ${DOCKER_IMAGE:-stackupwallet/stackup-bundler:latest}
+    ports:
+      - ${DOCKER_LISTEN:-4337}:4337
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        cp /input/.env .
+        touch /app/bundler.log
+
+        nohup -- /app/stackup-bundler start --mode private >>/app/bundler.log &
+
+        tail -F /app/bundler.log
+
+    volumes:
+      - ./input:/input

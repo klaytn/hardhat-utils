@@ -20,6 +20,7 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
 export * from "./abi";
 export * from "./accounts";
 export * from "./blockscout";
+export * from "./bundler";
 export * from "./deployments";
 export * from "./docs";
 export * from "./flat";
