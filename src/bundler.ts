@@ -11,7 +11,7 @@ import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/pro
 
 export const TASK_BUNDLER = "aa-bundler";
 
-task(TASK_BUNDLER, "Launch local Klaytn node")
+task(TASK_BUNDLER, "Launch local Klaytn bundler")
   .addOptionalParam("host", "HTTP JSON-RPC hostname", "0.0.0.0")
   .addOptionalParam("port", "HTTP JSON-RPC port", "4337")
   .addFlag("debug", "Print debug logs from the bundler")
