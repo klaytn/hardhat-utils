@@ -28,6 +28,8 @@ task(TASK_BUNDLER, "Launch local Klaytn bundler")
     process.chdir(dir);
 
     const envFile = await makeEnvFile(taskArgs);
+    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
+    fs.mkdirSync("input", { recursive: true });
     fs.writeFileSync("input/.env", envFile);
     console.log("[+] Configured:\n", envFile);
 
