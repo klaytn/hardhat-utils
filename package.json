@@ -1,6 +1,6 @@
 {
   "name": "@klaytn/hardhat-utils",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Hardhat utility tasks",
   "repository": "github:klaytn/hardhat-utils",
   "author": "",
