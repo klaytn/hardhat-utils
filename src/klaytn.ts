@@ -21,7 +21,7 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
   .addOptionalParam("derivationPath", "Funded accounts derivation path", "m/44'/60'/0'/0/")
   .addOptionalParam("balance", "Funded accounts balance in KLAY", "10000000")
   .addOptionalParam("chainId", "Chain ID", "31337")
-  .addOptionalParam("hardfork", "Hardfork level (none, istanbul, london, ethtxtype, magma, kore, mantle, latest)", "latest")
+  .addOptionalParam("hardfork", "Hardfork level (none, istanbul, london, ethtxtype, magma, kore, shanghai, cancun, latest)", "latest")
   .addOptionalParam("baseFee", "KIP-71 base fee in ston; If not specified, use Cypress default", "")
   .addOptionalParam("unitPrice", "pre KIP-71 unit price in ston", "25")
   .setAction(async (taskArgs) => {
@@ -118,6 +118,8 @@ const hardforkItems = [
   { "short": "ethtxtype", "config": "ethTxTypeCompatibleBlock" },
   { "short": "magma",     "config": "magmaCompatibleBlock" },
   { "short": "kore",      "config": "koreCompatibleBlock" },
+  { "short": "shanghai",  "config": "shanghaiCompatibleBlock" },
+  { "short": "cancun",    "config": "cancunCompatibleBlock" },
 ];
 const hardforkShorts = _.map(hardforkItems, (item) => item.short);
 
