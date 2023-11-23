@@ -7,8 +7,6 @@ export function PluginError(message: string, parent?: Error | undefined): Error 
   return new HardhatPluginError("hardhat-utils", message, parent)
 }
 
-console.log('afdsafsd');
-
 export async function sleep(msec: number) {
   await new Promise(resolve => setTimeout(resolve, msec));
 }

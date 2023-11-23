@@ -17,7 +17,8 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   hre.ethers = new Proxy(hre.ethers, extendHardhatEthers);
 });
 
-export * from "./abi";
+export * from "./tasks";
+
 export * from "./accounts";
 export * from "./blockscout";
 export * from "./bundler";

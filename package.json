@@ -25,6 +25,14 @@
     "./helpers/*": {
       "types": "./dist/helpers/*.d.ts",
       "default": "./dist/helpers/*.js"
+    },
+    "./tasks": {
+      "types": "./dist/tasks/index.d.ts",
+      "default": "./dist/tasks/index.js"
+    },
+    "./tasks/*": {
+      "types": "./dist/tasks/*.d.ts",
+      "default": "./dist/tasks/*.js"
     }
   },
   "scripts": {
