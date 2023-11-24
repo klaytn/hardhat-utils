@@ -1,12 +1,11 @@
-import axios, { AxiosError } from "axios";
 import { task } from "hardhat/config";
 import { HttpNetworkConfig } from "hardhat/types";
 import _ from "lodash";
 import path from "path";
 import process from "process";
-import { runDockerCompose } from "./helpers";
+import { networkSupportsTracer, runDockerCompose } from "./helpers";
 
-import { PluginError, sleep } from "./helpers";
+import { PluginError, networkRpcUrl } from "./helpers";
 import "./type-extensions";
 
 export const TASK_EXPLORER = "explorer";
@@ -25,12 +24,12 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
 
     const rpcUrl = await getRPCUrl(attachRemote);
     const url = `http://localhost:${port}`;
-    const disableTracer = await shouldDisableTracer();
+    const supportsTracer = await networkSupportsTracer();
     const extraEnvs = {
       'DOCKER_RPC_HTTP_URL': rpcUrl,
       'DOCKER_TAG': explorerVersion,
       'DOCKER_LISTEN': `${host}:${port}`,
-      'DOCKER_DISABLE_TRACER': _.toString(disableTracer),
+      'DOCKER_DISABLE_TRACER': _.toString(!supportsTracer),
       "DOCKER_DEBUG": debug ? "1" : "0",
     }
     _.assign(process.env, extraEnvs);
@@ -53,39 +52,11 @@ async function getRPCUrl(attachRemote: boolean): Promise<string> {
   const name = hre.network.name;
   if (name == "hardhat") {
     throw PluginError("Cannot run explorer for 'hardhat' network; Use --network localhost");
-  }
-  if (!attachRemote && name != "localhost") {
-    throw PluginError("Cannot run explorer for other than 'localhost' network; Use --attach-remote if you must");
-  }
-
-  if (name == "localhost") {
+  } else if (name == "localhost") {
     return "http://host.docker.internal:8545/";
-  }
-  const config = hre.network.config as HttpNetworkConfig;
-  if (!config.url) {
-    throw PluginError(`No RPC url for '${name}' network`);;
+  } else if (!attachRemote) {
+    throw PluginError("Refuse to run explorer non-localhost network; Use --attach-remote if you must");
   } else {
-    return config.url;
-  }
-}
-
-// Heuristically determine if the RPC endpoint supports debug_traceTransaction RPC.
-async function shouldDisableTracer(): Promise<boolean> {
-  try {
-    await hre.ethers.provider.send("debug_traceTransaction",
-      [hre.ethers.constants.HashZero, {tracer: "callTracer"}]);
-    return false;
-  } catch (e: any) {
-    if (e instanceof Error) {
-      if (e.message.includes("non-default tracer not supported yet")) {
-        return true; // anvil does not support tracers
-      } else if (e.message.includes("Method debug_traceTransaction not found")) {
-        return true; // hardhat node does not support tracers
-      } else if (e.message.includes("transaction 0000000000000000000000000000000000000000000000000000000000000000 not found")) {
-        return false; // It seems the tracers are supported.
-      }
-    }
-    console.log("Cannot recognize debug_traceTransaction error:", e);
-    return true; // Otherwise disable by default.
+    return networkRpcUrl();
   }
 }

@@ -54,8 +54,9 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
     // @ts-ignore: tsc does not recognize mkdirSync for some reason.
     fs.mkdirSync("input/keystore", { recursive: true });
     fs.writeFileSync("input/password", "");
-    _.forEach(accounts, (account, idx) => {
-      fs.writeFileSync(`input/keystore/keystore-${account.address}`, keystores[idx]);
+    _.forEach(keystores, (keystore, idx) => {
+      // node will load keystore files in lexicographical order. So, suffix with index.
+      fs.writeFileSync(`input/keystore/keystore-${idx.toString().padStart(3, ' ')}`, keystore);
     });
 
     console.log("[+] Using nodekey:", nodekey);
