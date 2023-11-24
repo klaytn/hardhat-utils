@@ -24,11 +24,12 @@ services:
         nohup -- kcn \
           --datadir /klaytn \
           --verbosity $$VERBOSITY \
-          --unlock $(cat /klaytn/account_addrs) --password /klaytn/password \
+          --gcmode archive --state.block-interval 1 \
           --netrestrict "127.0.0.1/32" --nodiscover \
           --ipcpath /klaytn/klay.ipc \
           --rpc --rpcvhosts "*" --rpccorsdomain "*" --rpcaddr "0.0.0.0" --rpcport 8545 \
           --rpcapi "admin,debug,eth,governance,istanbul,klay,net,personal,rpc,txpool,web3" \
+          --unlock $(cat /klaytn/account_addrs) --password /klaytn/password \
           2>>/klaytn/log/kcnd.out &
 
         set +e
