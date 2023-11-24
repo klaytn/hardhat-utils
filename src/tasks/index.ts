@@ -1,2 +1,6 @@
 export * from "./abi";
+export * from "./accounts";
+export * from "./faucet";
 export * from "./uploadAbi";
+export * from "./mnemonic";
+export * from "./decryptKeystore";
