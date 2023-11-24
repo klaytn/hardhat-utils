@@ -52,3 +52,35 @@ export async function getArtifactNames(): Promise<string[]> {
   const deployedNames = _.keys(await hre.deployments.all());
   return _.uniq(_.concat(compiledNames, deployedNames));
 }
+
+// Make HTTP POST data to upload ABIs to https://www.4byte.directory/
+// Docs: https://www.4byte.directory/docs/
+export const URL_4bytes = "https://www.4byte.directory/api/v1/import-abi/";
+export function make4bytesPostData(abis: any[]): any {
+  return { contract_abi: JSON.stringify(abis) };
+}
+
+// Make HTTP POST data to upload ABIs to https://openchain.xyz/signatures
+// Docs: https://docs.openchain.xyz/
+export const URL_sigdb = "https://api.openchain.xyz/signature-database/v1/import";
+export function makeSigdbPostData(abis: any[]): any {
+  const formatType = hre.ethers.utils.FormatTypes.sighash;
+
+  const functions: string[] = [];
+  const events: string[] = [];
+  for (const frag of abis) {
+    if (frag.type == 'function') {
+      const ffrag = hre.ethers.utils.FunctionFragment.fromObject(frag);
+      functions.push(ffrag.format(formatType));
+    }
+    if (frag.type == 'event') {
+      const efrag = hre.ethers.utils.EventFragment.fromObject(frag);
+      events.push(efrag.format(formatType));
+    }
+  }
+
+  return {
+    'function': _.uniq(functions),
+    'event': _.uniq(events)
+  };
+}

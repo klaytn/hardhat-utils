@@ -8,7 +8,7 @@ export const TASK_ABI = "abi";
 
 task(TASK_ABI, "Get ABI of a contract")
   .addFlag("json", "print json abi")
-  .addOptionalPositionalParam("name", "Contract name (all contracts if empty)", "")
+  .addOptionalPositionalParam("name", "Contract name (leave empty to use all contracts)", "")
   .setAction(async (taskArgs) => {
     const { name, json } = taskArgs;
 
@@ -22,10 +22,11 @@ task(TASK_ABI, "Get ABI of a contract")
     for (const name of names) {
       const artifact = await getArtifact(name);
       const abi = await stringifyAbi(artifact.abi, json);
-      if (abi && abi.length > 0 && abi != "[]") { // skip empty artifact
-        console.log(`# ${name}`); // print contract name
-        console.log(abi);
-        console.log();
+      if (abi && abi.length > 0 && abi != "[]") {
+        continue;  // skip empty artifact
       }
+      console.log(`# ${name}`); // print contract name
+      console.log(abi);
+      console.log();      
     }
   });
