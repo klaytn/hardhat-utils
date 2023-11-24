@@ -24,4 +24,3 @@ export * from "./bundler";
 export * from "./deployments";
 export * from "./docs";
 export * from "./flat";
-export * from "./klaytn";

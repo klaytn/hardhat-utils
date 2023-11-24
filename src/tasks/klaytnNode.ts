@@ -1,11 +1,11 @@
 import type ethers from "ethers";
-import _ from "lodash";
+import { BigNumber, Wallet } from "ethers";
 import fs from "fs";
+import { task } from "hardhat/config";
+import _ from "lodash";
 import path from "path";
 import process from "process";
-import { BigNumber, Wallet } from "ethers";
-import { task } from "hardhat/config";
-import { PluginError, runDockerCompose } from "./helpers";
+import { PluginError, runDockerCompose } from "../helpers";
 
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 
@@ -27,7 +27,7 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
   .setAction(async (taskArgs) => {
     const { attach, debug, host, port, dockerImageId, balance } = taskArgs;
 
-    const dir = path.resolve(__dirname, "../fixtures/klaytn");
+    const dir = path.resolve(__dirname, "../../fixtures/klaytn");
     process.chdir(dir);
 
     if (attach) {
@@ -35,17 +35,29 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
       return;
     }
 
-    let accounts = generateAccounts(taskArgs);
-    let genesis = makeGenesis(taskArgs, accounts);
-    let nodekey = accounts[0].privateKey.substring(2); // strip 0x
-    let keystores = await generateKeystoreJson(accounts);
-    console.log("[+] Using genesis:", genesis);
-    console.log("[+] Using nodekey:", nodekey);
-    console.log("[+] Available accounts:");
+    const accounts = generateAccounts(taskArgs);
+    const genesis = makeGenesis(taskArgs, accounts);
+    fs.writeFileSync("input/genesis.json", genesis);
+
+    const nodekey = accounts[0].privateKey.substring(2); // strip 0x
+    fs.writeFileSync("input/nodekey", nodekey);
+
+    const account_addrs = _.join(_.map(accounts, (account) => account.address), ',');
+    fs.writeFileSync("input/account_addrs", account_addrs);
+    
+    const keystores = await generateKeystoreJson(accounts);
+    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
+    fs.mkdirSync("input/keystore", { recursive: true });
+    fs.writeFileSync("input/password", "");
     _.forEach(accounts, (account, idx) => {
-      let idxstr = ("#" + idx).padStart(3,' ');
-      console.log(`Account ${idxstr}: ${account.address} (${balance} KLAY)`);
-      console.log(`Private Key: ${account.privateKey}\n`);
+      fs.writeFileSync(`input/keystore/keystore-${account.address}`, keystores[idx]);
+    });
+
+    console.log("[+] Using nodekey:", nodekey);
+    console.log("[+] Available accounts (each having ${balance} KLAY):");
+    console.log("    address                                    private key");
+    _.forEach(accounts, (account, idx) => {
+      console.log(`${idx.toString().padStart(3, ' ')} ${account.address} ${account.privateKey}`);
     });
 
     const extraEnvs = {
@@ -60,15 +72,6 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
     console.log("      npx hardhat klaytn-node --attach");
     console.log("    Press Ctrl+C to stop");
     console.log("");
-
-    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
-    fs.mkdirSync("input/keystore", { recursive: true });
-    fs.writeFileSync("input/genesis.json", genesis);
-    fs.writeFileSync("input/nodekey", nodekey)
-    _.forEach(keystores, (json, idx) => {
-      let idxstr = idx.toString().padStart(3, '0');
-      fs.writeFileSync(`input/keystore/account_${idxstr}`, json);
-    });
 
     // Having an empty SIGINT handler prevents this task to quit on Ctrl+C.
     // This task is supposed to quit after docker-compose down.

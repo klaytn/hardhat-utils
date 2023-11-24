@@ -4,7 +4,7 @@ import _ from "lodash";
 import * as _path from "path";
 import readlineSync from "readline-sync";
 
-import "./type-extensions";
+import "../type-extensions";
 
 export const TASK_DECRYPT_KEYSTORE = "decrypt-keystore";
 

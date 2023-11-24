@@ -3,7 +3,7 @@ import _ from "lodash";
 import * as _path from "path";
 
 import { FromArgType, PluginError } from "../helpers";
-import "./type-extensions";
+import "../type-extensions";
 
 export const TASK_FAUCET = "faucet";
 
