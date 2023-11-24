@@ -5,7 +5,7 @@ import { task } from "hardhat/config";
 import _ from "lodash";
 import path from "path";
 import process from "process";
-import { PluginError, runDockerCompose } from "../helpers";
+import { PluginError, defaultDerivationPath, defaultMnemonic, deriveAccounts, runDockerCompose } from "../helpers";
 
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 
@@ -17,13 +17,13 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
   .addOptionalParam("host", "HTTP JSON-RPC hostname", "0.0.0.0")
   .addOptionalParam("port", "HTTP JSON-RPC port", "8545")
   .addOptionalParam("dockerImageId", "Docker image id", "klaytn/klaytn:latest")
-  .addOptionalParam("mnemonic", "Funded accounts mnemonic", "test test test test test test test test test test test junk")
-  .addOptionalParam("derivationPath", "Funded accounts derivation path", "m/44'/60'/0'/0/")
-  .addOptionalParam("balance", "Funded accounts balance in KLAY", "10000000")
+  .addOptionalParam("mnemonic", "Funded accounts mnemonic", defaultMnemonic)
+  .addOptionalParam("derivationPath", "Funded accounts derivation path", defaultDerivationPath)
+  .addOptionalParam("balance", "Accounts balance in KLAY", "10000000")
   .addOptionalParam("chainId", "Chain ID", "31337")
   .addOptionalParam("hardfork", "Hardfork level (none, istanbul, london, ethtxtype, magma, kore, shanghai, cancun, latest)", "latest")
-  .addOptionalParam("baseFee", "KIP-71 base fee in ston; If not specified, use Cypress default", "")
-  .addOptionalParam("unitPrice", "pre KIP-71 unit price in ston", "25")
+  .addOptionalParam("baseFee", "(since Magma) Fix the baseFee to constant; If not specified, dynamic baseFee in 25-750", "")
+  .addOptionalParam("unitPrice", "(before Magma) Unit price in ston", "25")
   .setAction(async (taskArgs) => {
     const { attach, debug, host, port, dockerImageId, balance } = taskArgs;
 
@@ -35,7 +35,11 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
       return;
     }
 
-    const accounts = generateAccounts(taskArgs);
+    const accounts = deriveAccounts({
+      mnemonic: taskArgs.mnemonic,
+      path: taskArgs.derivationPath
+    });
+
     const genesis = makeGenesis(taskArgs, accounts);
     fs.writeFileSync("input/genesis.json", genesis);
 
@@ -45,7 +49,8 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
     const account_addrs = _.join(_.map(accounts, (account) => account.address), ',');
     fs.writeFileSync("input/account_addrs", account_addrs);
     
-    const keystores = await generateKeystoreJson(accounts);
+    const keystores = await Promise.all(_.map(accounts,
+      (account) => account.encrypt("", { scrypt: { N: 2, p: 1 } })));
     // @ts-ignore: tsc does not recognize mkdirSync for some reason.
     fs.mkdirSync("input/keystore", { recursive: true });
     fs.writeFileSync("input/password", "");
@@ -84,28 +89,8 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
     }
   });
 
-function generateAccounts(taskArgs: any): ethers.Wallet[] {
-  const { mnemonic, derivationPath } = taskArgs;
-
-  let accounts: any[] = normalizeHardhatNetworkAccountsConfig({
-    mnemonic: mnemonic,
-    path: derivationPath,
-    initialIndex: 0,
-    count: 10,
-    accountsBalance: "0", // irrelevant here
-  });
-  return _.map(accounts, (account) => new Wallet(account.privateKey));
-}
-
-async function generateKeystoreJson(accounts: ethers.Wallet[]): Promise<string[]> {
-  let keystores: string[] = [];
-  for (var i = 0; i < accounts.length; i++) {
-    let json = await accounts[i].encrypt("", { scrypt: { N: 2, p: 1 } });
-    keystores.push(json);
-  }
-  return keystores;
-}
-
+// TODO: use homi to generate genesis.json
+// e.g. docker run --rm klaytn/klaytn -- homi setup
 type genesisAlloc = {
   [key: string]: {
     balance: string | undefined;
