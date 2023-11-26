@@ -14,27 +14,29 @@ export async function stringifyAbi(abi: any, json = true): Promise<any> {
     return iface.format(formats.json);
   }
 
-  // TODO: pretty-print by aligning hashes
-  const out = [];
+  const out: Array<[string, string]> = [];
   for (const f of iface.fragments) {
     const decl = f.format(formats.full);
     let hash;
     switch (f.type) {
       case "function":
         hash = iface.getSighash(f);
-        out.push(`${decl} // ${hash}`);
+        out.push([decl, hash]);
         break;
       case "event":
         hash = iface.getEventTopic(f as ethers.utils.EventFragment);
-        out.push(`${decl} // ${hash}`);
+        out.push([decl, hash]);
         break;
       case "error":
       case "constructor":
-        out.push(decl);
+        out.push([decl, ""]);
         break;
     }
   }
-  return _.join(out, '\n');
+
+  const padLen = _.max(out.map(([decl, _hash]) => decl.length)) ?? 0; // longest length of 'decl'
+  const padded = _.map(out, ([decl, hash]) => _.padEnd(decl, padLen) + " // " + hash);
+  return _.join(padded, '\n');
 }
 
 export async function getArtifact(name: string): Promise<Artifact>{

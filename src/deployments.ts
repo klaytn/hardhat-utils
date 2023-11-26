@@ -93,7 +93,7 @@ task(TASK_IMPORT, "Import a contract deployment")
     d.deployedBytecode = await hre.ethers.provider.getCode(address);
 
     await hre.deployments.save(contractName, d);
-    // Wait for the file creation. TODO: remove sleep
+    // Wait for the file creation. Needed if hardhat-deploy < 0.11.40
     // https://github.com/wighawag/hardhat-deploy/pull/436
     await new Promise((resolve) => setTimeout(resolve, 1000));
   });

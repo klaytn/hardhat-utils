@@ -4,6 +4,7 @@ export * from "./addr";
 export * from "./blockscout";
 export * from "./aaBundler";
 export * from "./faucet";
+export * from "./import";
 export * from "./uploadAbi";
 export * from "./mnemonic";
 export * from "./decryptKeystore";

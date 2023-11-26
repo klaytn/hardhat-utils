@@ -5,7 +5,7 @@ import "../type-extensions";
 export const TASK_ADDR = "addr";
 
 task(TASK_ADDR, "Get address of a deployed contract")
-  .addOptionalPositionalParam("name", "Contract name", "")
+  .addOptionalPositionalParam("name", "Contract name (leave empty to use all contracts)", "")
   .setAction(async (taskArgs) => {
     const { name } = taskArgs;
     if (name == "") {

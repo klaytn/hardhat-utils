@@ -19,14 +19,19 @@ task(TASK_ABI, "Get ABI of a contract")
       names = [name];
     }
 
-    for (const name of names) {
-      const artifact = await getArtifact(name);
-      const abi = await stringifyAbi(artifact.abi, json);
-      if (abi && abi.length > 0 && abi != "[]") {
-        continue;  // skip empty artifact
+    if (json) {
+      const abis: Record<string, any> = {};
+      for (const name of names) {
+        const artifact = await getArtifact(name);
+        abis[name] = artifact.abi;
       }
-      console.log(`# ${name}`); // print contract name
-      console.log(abi);
-      console.log();      
+      console.log(JSON.stringify(abis));
+    } else {
+      for (const name of names) {
+        const artifact = await getArtifact(name);
+        console.log(`# ${name}`); // print contract name
+        console.log(await stringifyAbi(artifact.abi, json));
+        console.log();
+      }
     }
   });
