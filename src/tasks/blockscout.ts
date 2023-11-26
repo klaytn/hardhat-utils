@@ -3,10 +3,9 @@ import { HttpNetworkConfig } from "hardhat/types";
 import _ from "lodash";
 import path from "path";
 import process from "process";
-import { networkSupportsTracer, runDockerCompose } from "./helpers";
 
-import { PluginError, networkRpcUrl } from "./helpers";
-import "./type-extensions";
+import { PluginError, networkRpcUrl, networkSupportsTracer, runDockerCompose } from "../helpers";
+import "../type-extensions";
 
 export const TASK_EXPLORER = "explorer";
 
