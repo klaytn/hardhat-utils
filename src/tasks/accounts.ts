@@ -3,7 +3,6 @@ import fs from "fs";
 import { task } from "hardhat/config";
 import _ from "lodash";
 import * as _path from "path";
-import readlineSync from "readline-sync";
 
 import { FromArgType, PluginError } from "../helpers";
 import "../type-extensions";
