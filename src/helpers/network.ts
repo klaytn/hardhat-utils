@@ -16,6 +16,20 @@ export async function networkRpcUrl(): Promise<string> {
   }
 }
 
+// Local RPC endpoint for use from docker container.
+export async function networkRpcUrlFromDocker(attachRemote: boolean): Promise<string> {
+  const name = hre.network.name;
+  if (name == "hardhat") {
+    throw PluginError("Cannot attach 'hardhat' network; Maybe missing '--network localhost'?");
+  } else if (name == "localhost") {
+    return "http://host.docker.internal:8545/";
+  } else if (!attachRemote) {
+    throw PluginError("Refuse to attach to non-localhost network; Use --attach-remote if you must");
+  } else {
+    return networkRpcUrl();
+  }
+}
+
 // Heuristically determine if the RPC endpoint supports debug_traceTransaction RPC.
 export async function networkSupportsTracer(): Promise<boolean> {
   try {

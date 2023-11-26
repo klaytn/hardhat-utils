@@ -4,7 +4,7 @@ import _ from "lodash";
 import path from "path";
 import process from "process";
 
-import { PluginError, networkRpcUrl, networkSupportsTracer, runDockerCompose } from "../helpers";
+import { PluginError, networkRpcUrl, networkRpcUrlFromDocker, networkSupportsTracer, runDockerCompose } from "../helpers";
 import "../type-extensions";
 
 export const TASK_EXPLORER = "explorer";
@@ -21,7 +21,7 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
     const dir = path.resolve(__dirname, "../fixtures/blockscout");
     process.chdir(dir);
 
-    const rpcUrl = await getRPCUrl(attachRemote);
+    const rpcUrl = await networkRpcUrlFromDocker(attachRemote);
     const url = `http://localhost:${port}`;
     const supportsTracer = await networkSupportsTracer();
     const extraEnvs = {
@@ -46,16 +46,3 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
       runDockerCompose("down");
     }
   });
-
-async function getRPCUrl(attachRemote: boolean): Promise<string> {
-  const name = hre.network.name;
-  if (name == "hardhat") {
-    throw PluginError("Cannot run explorer for 'hardhat' network; Use --network localhost");
-  } else if (name == "localhost") {
-    return "http://host.docker.internal:8545/";
-  } else if (!attachRemote) {
-    throw PluginError("Refuse to run explorer non-localhost network; Use --attach-remote if you must");
-  } else {
-    return networkRpcUrl();
-  }
-}

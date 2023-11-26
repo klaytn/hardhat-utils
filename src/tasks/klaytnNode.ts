@@ -40,6 +40,9 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
       path: taskArgs.derivationPath
     });
 
+    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
+    fs.mkdirSync("input/keystore", { recursive: true });
+
     const genesis = makeGenesis(taskArgs, accounts);
     fs.writeFileSync("input/genesis.json", genesis);
 
@@ -48,16 +51,16 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
 
     const account_addrs = _.join(_.map(accounts, (account) => account.address), ',');
     fs.writeFileSync("input/account_addrs", account_addrs);
-    
+
+    const password = "";
+    fs.writeFileSync("input/password", password);
+
     const keystores = await Promise.all(_.map(accounts,
-      (account) => account.encrypt("", { scrypt: { N: 2, p: 1 } })));
-    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
-    fs.mkdirSync("input/keystore", { recursive: true });
-    fs.writeFileSync("input/password", "");
-    _.forEach(keystores, (keystore, idx) => {
-      // node will load keystore files in lexicographical order. So, suffix with index.
-      fs.writeFileSync(`input/keystore/keystore-${idx.toString().padStart(3, ' ')}`, keystore);
-    });
+      (account) => account.encrypt(password, { scrypt: { N: 2, p: 1 } })));
+      _.forEach(keystores, (keystore, idx) => {
+        // node will load keystore files in lexicographical order. So, suffix with index.
+        fs.writeFileSync(`input/keystore/keystore-${idx.toString().padStart(3, ' ')}`, keystore);
+      });
 
     console.log("[+] Using nodekey:", nodekey);
     console.log("[+] Available accounts (each having ${balance} KLAY):");
