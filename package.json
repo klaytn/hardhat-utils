@@ -87,7 +87,6 @@
     "koa-static": "^5.0.0",
     "lodash": "^4.17.21",
     "readline-sync": "^1.4.10",
-    "shelljs": "^0.8.5",
-    "squirrelly": "^8.0.8"
+    "shelljs": "^0.8.5"
   }
 }
