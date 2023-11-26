@@ -20,4 +20,3 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
 export * from "./tasks";
 
 export * from "./deployments";
-export * from "./flat";
