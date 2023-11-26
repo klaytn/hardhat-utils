@@ -31,7 +31,7 @@ export interface FuncTaskCommonArgs {
   func: string;
   args: string[];
   from: string;
-  to: string;
+  to?: string;
 }
 
 interface ResolvedFuncArgs {
@@ -44,7 +44,7 @@ export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<Res
   const { name, func, args, from, to } = taskArgs;
 
   let contract: ethers.Contract;
-  if (to == "") {
+  if (!to || to == "") {
     const deployment = await hre.deployments.get(name);
     contract = new hre.ethers.Contract(deployment.address, deployment.abi);
   } else {
@@ -52,53 +52,45 @@ export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<Res
   }
 
   const sender = await hre.ethers.getSigner(from);
-  //console.log(await sender.getAddress());
 
   const unsignedTx = await contract
     .connect(sender)
     .populateTransaction[func](...args);
-  //console.log(utx);
 
   return { contract, sender, unsignedTx };
 }
 
 export interface NormalizeOpts {
-  dec: boolean;
+  raw?: boolean;
+  dec?: boolean;
+  eth?: boolean;
 }
 
-function normalizeItem(item: any, opts?: NormalizeOpts): any {
-  if (item?.constructor.name == "BigNumber") {
-    if (opts?.dec) {
-      return item.toString();
-    } else {
-      return item.toHexString();
-    }
-  } else if (_.isNumber(item)) {
-    if (opts?.dec) {
-      return item.toString();
-    } else {
-      return "0x" + item.toString(16);
-    }
-  } else {
-    return item;
-  }
-}
-
+// Prettify function call result in array
 export function normalizeCallResult(res: any, opts?: NormalizeOpts): any {
-  if (_.isArray(res)) {
-    let out = new Array(res.length);
-    for (var i = 0; i < res.length; i++) {
-      out[i] = normalizeItem(res[i], opts);
-    }
-    return out;
+  if (_.isArray(res) && !_.isString(res)) {
+    return _.map(res, (item) => normalizeCallResult(item, opts));
   } else {
     return normalizeItem(res, opts);
   }
 }
 
+// Prettify RPC call result such as eth_getTransactionReceipt
 export function normalizeRpcResult(obj: any, opts?: NormalizeOpts) {
-  _.forOwn(obj, (_val, key) => {
-    obj[key] = normalizeItem(obj[key], opts);
-  });
-  return obj;
+  return  _.mapValues(obj, (val) => normalizeItem(val, opts));
+}
+
+function normalizeItem(item: any, opts?: NormalizeOpts): any {
+  if (item?.constructor.name == "BigNumber" || _.isNumber(item)) {
+    const num = hre.ethers.BigNumber.from(item);
+    if (opts?.dec) {
+      return num.toString();
+    } else if (opts?.eth) {
+      return hre.ethers.utils.formatEther(num);
+    } else {
+      return num.toHexString();
+    }
+  } else {
+    return item;
+  }
 }
