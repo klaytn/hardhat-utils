@@ -8,17 +8,37 @@
 npm install @klaytn/hardhat-utils
 ```
 
-Import the plugin in your `hardhat.config.js`:
+## Import the tasks
 
-```js
-require("@klaytn/hardhat-utils");
-```
+- In `hardhat.config.js`
+  - Import all tasks
+    ```
+    require("@klaytn/hardhat-utils");
+    ```
+  - Import selectively (see [tasks/](./src/tasks))
+    ```
+    require("@klaytn/hardhat-utils/tasks/accounts");
+    require("@klaytn/hardhat-utils/tasks/klaytnNode");
+    ```
+- In `hardhat.config.ts`
+  - Import all tasks
+    ```
+    import "@klaytn/hardhat-utils";
+    ```
+  - Import selectively
+    ```
+    import "@klaytn/hardhat-utils/tasks/accounts";
+    import "@klaytn/hardhat-utils/tasks/klaytnNode";
+    ```
 
-Or if you are using TypeScript, in your `hardhat.config.ts`:
+## Import the helper functions
 
-```ts
-import "@klaytn/hardhat-utils";
-```
+- In your `.js` script
+  ```
+  const { deriveAccounts } = require("@klaytn/hardhat-utils/helpers");
+  ```
+- In your `.ts` script
+  import { deriveAccounts } from "@klaytn/hardhat-utils/helpers";
 
 ## Required plugins
 
@@ -28,7 +48,6 @@ This plugin is dependent on other plugins. Make sure to require or import them i
 - [hardhat-deploy](https://www.npmjs.com/package/hardhat-deploy)
 
 ## Tasks
-
 
 Type `hh <task name> --help` for detailed help. Below paragraphs outlines notable use cases.
 
@@ -155,57 +174,3 @@ Upload ABI to online database sites. See also: `abi` and `smart-flatten`.
 - `hh upload-abi --sigdb` submits ABIs of all compiled contracts to https://openchain.xyz/signatures
 - `hh upload-abi --sigdb Counter` submits ABI for a specific contract.
 
-## Usage
-
-```sh
-# Print ABI
-hh abi Counter
-hh abi Counter --json
-
-# Show addresses and balances of loaded accounts
-hh accounts
-hh accounts --from 2 --json
-
-# Send coins for gas fee
-hh faucet --from 0 --to 1-8 --amount 0.1
-
-# Deploy contracts
-hh deploy
-
-# Save deployed contract addreses
-hh import Counter 0xaddr
-
-# Get address from deployments
-hh addr          # List all addresses
-hh addr Counter
-
-# Call contract function
-hh call Counter number              # load address from deployments
-hh call Counter number --to 0xaddr  # call designated address
-
-# Send transaction to contract
-hh send Counter setNumber 123              # load address from deployments
-hh send Counter setNumber 123 --to 0xaddr  # call designated address
-hh send Counter increment--unsigned        # print unsigned tx
-hh send Counter increment --browser        # launch web page for browser wallet
-
-# Flatten and print compilation info and sort out multiple licenses
-hh smart-flatten Counter
-
-# Upload ABI to online database
-hh upload-abi Counter --byte4 --sigdb
-
-# Work with keystore and mnemonic
-hh mnemonic --index 2
-hh keystore-decrypt k.json --password 1111
-hh keystore-encrypt 0xprivatekey --password 1111 > k.json
-hh keystore-kip3 v4.json v3.json
-find ./keys/*.json -exec hh keystore-kip3 {} {}_v3.json \;  # batch convert
-find ./keys/*.json -exec hh keystore-kip3 {} {} \;  # batch convert in-place
-
-# Launch blockscout explorer for local network
-# Requires docker-compose and docker
-hh explorer
-hh explorer --restart
-hh explorer --stop
-```
