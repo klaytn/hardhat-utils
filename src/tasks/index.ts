@@ -1,5 +1,6 @@
 export * from "./abi";
 export * from "./accounts";
+export * from "./addr";
 export * from "./blockscout";
 export * from "./aaBundler";
 export * from "./faucet";

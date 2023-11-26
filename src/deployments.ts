@@ -12,19 +12,6 @@ export const TASK_CALL = "call";
 export const TASK_SEND = "send";
 export const TASK_IMPORT = "import";
 
-task(TASK_ADDR, "Get address of a deployed contract")
-  .addOptionalPositionalParam("name", "Contract name", "")
-  .setAction(async (taskArgs) => {
-    const { name } = taskArgs;
-    if (name == "") {
-      const deployments = await hre.deployments.all();
-      console.log(_.mapValues(deployments, (d) => d.address));
-    } else {
-      const deployment = await hre.deployments.get(name);
-      console.log(deployment.address);
-    }
-  });
-
 // TODO: call and send: --gas-price, --gas-limit, --nonce
 task(TASK_CALL, "Call a read-only function to a contract")
   .addOptionalParam("from", "Caller address or index", 0, FromArgType)
