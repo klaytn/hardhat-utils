@@ -9,4 +9,5 @@ export * from "./faucet";
 export * from "./import";
 export * from "./klaytnNode";
 export * from "./mnemonic";
+export * from "./send";
 export * from "./uploadAbi";
