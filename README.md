@@ -51,6 +51,48 @@ This plugin is dependent on other plugins. Make sure to require or import them i
 
 Type `hh <task name> --help` for detailed help. Below paragraphs outlines notable use cases.
 
+### Account related tasks
+
+#### `hh accounts`
+
+Print account addresses and balances. Useful for checking the curent hardhat network.
+
+```
+hh accounts
+```
+```
+    address                                    balance
+  0 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 10000000.0
+  1 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 10000000.0
+  2 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC 10000000.0
+  3 0x90F79bf6EB2c4f870365E785982E1f101E93b906 10000000.0
+  4 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65 10000000.0
+  5 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc 10000000.0
+  6 0x976EA74026E726554dB657fA54763abd0C3a0aa9 10000000.0
+  7 0x14dC79964da2C08b23698B3D3cc7Ca32193d9955 10000000.0
+  8 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f 10000000.0
+  9 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 10000000.0
+```
+
+#### `hh decrypt-keystore`
+
+Decrypt JSON keystore file to print the address and private key.
+Also accepts the [KIP-3](https://kips.klaytn.foundation/KIPs/kip-3) (Klaytn keystore v4) in which case
+multiple addresses and private keys are printed.
+
+```
+hh decrypt-keystore keystore.json --password "mypass"
+```
+```
+    address                                    private key
+  0 0x0cc57a3c4E276A37AB0A98ba6899CAf6037996fB 278c3d035328daf04ab2597da96dd2d8868fd61a8837030f7d8a85f27b7f1bad
+  1 0x1F2f81B67d1A718c09221eBeb3F12a7192389663 a06d13800719307ea7e2503ea441c2ea49279d0d600a2eec2887b50928869676
+  2 0xF5D27139C99621859e8D1b0f6Be8BF3b8dAca609 c32f4007ffad303db99dee0d79a720e1d70c4b2babf8e33cb28170a16bac467d
+  3 0x7E39a9097C975E6A63f1e0ade4b7312cF2854F9c c274d13302891d0d91a60891a48fde8c2860018f8dcb6293dcc0b28a238590b0
+  4 0x09859661f2574E80C5a51EA3e0E29cA19D21f513 83c127e5207b70086a702c93f1c9a041f15ce49ee5183ce848f35c64de196eff
+  5 0x3AcFe8529FD4C2028f8A26805F9Bf9bAB2cc41eF 48f97204ac4886dfbd819ada04ea31a730c6fc43fcb08900566360ee7402f93b
+```
+
 ### `abi`
 
 Print ABI of a contract. See also: `call`, `docs`, `send`, `smart-flatten` and `upload-abi` .
@@ -60,13 +102,6 @@ Print ABI of a contract. See also: `call`, `docs`, `send`, `smart-flatten` and `
 You can choose output formats
 - `hh abi` by default prints in human-readable string format.
 - `hh abi --json` prints in JSON format to be used in other apps.
-
-### `accounts`
-
-Print account address and balance. Useful for checking the curent hardhat network. See also: `faucet` and `mnemonic`
-
-- `hh accounts` prints the address and balance of the default accounts for current network.
-- `hh accounts --from 0` prints for one specific account. Can be address or index.
 
 ### `addr`
 
@@ -117,21 +152,6 @@ Transfer native coins in batch. Intended to fill balances for gas fee. See also:
 Import a deployment, i.e. address and ABI, of an existing contract. As a result, addresses and ABI will be saved under `deployments/<network>`. See also: `addr` and `deploy`.
 - `hh import Counter <addr>` saves the contract address and ABI
 - `hh import Counter <addr> <deployTxHash>` saves the contract address, ABI and deploy transaction receipt.
-
-### `keystore-decrypt`
-
-Decrypt a JSON keystore to get private key. See also: `keystore-encrypt`, `keystore-kip3`, and `mnemonic`.
-- `hh keystore-decrypt keystore.json --password 1234` prints the private key.
-
-### `keystore-encrypt`
-
-Encrypt a private key to a keystore.json. See also: `keystore-decrypt` and `mnemonic`.
-- `hh keystore-encrypt <privHex> --password 1234` prints a JSON keystore v3.
-
-### `keystore-kip3`
-
-Convert [KIP-3 v4 keystore](https://github.com/klaytn/kips/blob/main/KIPs/kip-3.md) to v3 keystore. See also: `keystore-decrypt`.
-- `hh keystore-kip3 v4.json` prints a JSON keystore v4.
 
 ### `klaytn-node`
 

@@ -34,8 +34,9 @@ task(TASK_ACCOUNTS, "Get infromation about active accounts")
     if (json) {
       console.log(JSON.stringify(out, null, 2));
     } else {
-      out.forEach((info) => {
-        console.log(info.address, info.balance);
+      console.log("    address                                    balance");
+      out.forEach((info, idx) => {
+        console.log(idx.toString().padStart(3, ' '), info.address, info.balance);
       });
     }
   });

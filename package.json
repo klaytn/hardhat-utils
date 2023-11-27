@@ -81,6 +81,7 @@
     "hardhat-deploy": "^0.11.44"
   },
   "dependencies": {
+    "@klaytn/js-ext-core": "^0.9.7-beta",
     "lodash": "^4.17.21",
     "readline-sync": "^1.4.10"
   }
