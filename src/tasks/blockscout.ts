@@ -18,7 +18,7 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
   .setAction(async (taskArgs) => {
     const { host, port, debug, attachRemote, explorerVersion } = taskArgs;
 
-    const dir = path.resolve(__dirname, "../fixtures/blockscout");
+    const dir = path.resolve(__dirname, "../../fixtures/blockscout");
     process.chdir(dir);
 
     const rpcUrl = await networkRpcUrlFromDocker(attachRemote);
@@ -40,9 +40,10 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
     process.on('SIGINT', () => {});
     try {
       // --force-recreate to remove old database and start over
-      runDockerCompose("up --force-recreate -d db");
-      runDockerCompose("up --force-recreate blockscout");
+      runDockerCompose("up --force-recreate -d redis_db db backend frontend smart-contract-verifier");
+      runDockerCompose("up --force-recreate proxy");
     } catch (e) {
+      runDockerCompose("kill");
       runDockerCompose("down");
     }
   });

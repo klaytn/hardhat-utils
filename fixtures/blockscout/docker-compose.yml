@@ -30,6 +30,7 @@ services:
     depends_on:
       - db
       - redis_db
+      - smart-contract-verifier
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     command:
@@ -50,7 +51,7 @@ services:
     restart: always
     env_file:
       - "./envs/common-frontend.env"
-  
+
   smart-contract-verifier:
     image: ghcr.io/blockscout/smart-contract-verifier:latest
     platform: linux/amd64

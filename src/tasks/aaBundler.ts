@@ -48,6 +48,7 @@ task(TASK_BUNDLER, "Launch local Klaytn bundler")
       // --force-recreate to remove old database and start over
       runDockerCompose("up --force-recreate");
     } catch (e) {
+      runDockerCompose("kill");
       runDockerCompose("down");
     }
   });

@@ -1,6 +1,5 @@
 import { task } from "hardhat/config";
 import _ from "lodash";
-import {launchBrowserSigner} from "../browser";
 
 import { FromArgType, resolveFuncArgs, normalizeCallResult, normalizeRpcResult } from "../helpers";
 import "../type-extensions";

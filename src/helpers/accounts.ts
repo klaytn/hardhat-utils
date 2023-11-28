@@ -13,7 +13,7 @@ export interface DeriveAccountsConfig {
   count?: number;
 }
 
-export function deriveAccounts(config: DeriveAccountsConfig): Wallet[] {
+export function deriveAccounts(config: DeriveAccountsConfig = {}): Wallet[] {
   config.mnemonic ??= defaultMnemonic;
   config.path ??= defaultDerivationPath;
   config.initialIndex ??= 0;

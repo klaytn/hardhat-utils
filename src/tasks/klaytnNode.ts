@@ -89,6 +89,7 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
       // --force-recreate to remove old database and start over
       runDockerCompose("up --force-recreate");
     } catch (e) {
+      runDockerCompose("kill");
       runDockerCompose("down");
     }
   });
