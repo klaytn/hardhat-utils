@@ -66,7 +66,7 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
     console.log("[+] Available accounts (each having ${balance} KLAY):");
     console.log("    address                                    private key");
     _.forEach(accounts, (account, idx) => {
-      console.log(`${idx.toString().padStart(3, ' ')} ${account.address} ${account.privateKey}`);
+      console.log(`${idx.toString().padStart(3, '0')} ${account.address} ${account.privateKey}`);
     });
 
     const extraEnvs = {
