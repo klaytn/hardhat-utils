@@ -11,7 +11,6 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   if (!hre.deployments) {
     throw PluginError("hardhat-deploy plugin not loaded. In your hardhat.config.js, please require or import 'hardhat-deploy' before hardhat-utils");
   }
-  // Because hardhat-dodoc is a non-critical feature, don't check here.
 
   // Lazy extend the `hre.ethers` object using the ES6 object Proxy
   hre.ethers = new Proxy(hre.ethers, extendHardhatEthers);
