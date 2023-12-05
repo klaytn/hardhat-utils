@@ -1,21 +1,26 @@
 version: '3'
 services:
-  bundler:
-    hostname: bundler
+  stackup:
     image: ${DOCKER_IMAGE:-stackupwallet/stackup-bundler:latest}
     ports:
       - ${DOCKER_LISTEN:-4337}:4337
+    environment:
+      - "ERC4337_BUNDLER_ETH_CLIENT_URL=${BUNDLER_NODE_RPC}"
+      - "ERC4337_BUNDLER_PRIVATE_KEY=${BUNDLER_PRIVATE_KEY}"
+      - "ERC4337_BUNDLER_SUPPORTED_ENTRY_POINTS=${BUNDLER_ENTRYPOINT}"
+      - "ERC4337_BUNDLER_MAX_OP_TTL_SECONDS=30"
     entrypoint:
       - /bin/bash
       - -c
       - |
-        set -e
-        cp /input/.env .
-        touch /app/bundler.log
-
-        nohup -- /app/stackup-bundler start --mode private >>/app/bundler.log &
-
-        tail -F /app/bundler.log
-
-    volumes:
-      - ./input:/input
+        (apt-get update && apt-get install -y curl) >/dev/null
+        while true; do
+          echo -n "checking eth_chainId... "
+          curl -sSL -X POST "$$ERC4337_BUNDLER_ETH_CLIENT_URL" \
+               -H "content-type: application/json" \
+               --data '{"id":1, "jsonrpc":"2.0", "method":"eth_chainId"}'
+          [ $$? -eq 0 ] && break;
+          sleep 5
+        done
+        echo "connected to RPC '$$ERC4337_BUNDLER_ETH_CLIENT_URL'";
+        /app/stackup-bundler start --mode private

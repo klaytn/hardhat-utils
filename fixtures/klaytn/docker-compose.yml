@@ -5,34 +5,31 @@ services:
     image: ${DOCKER_IMAGE:-klaytn/klaytn:latest}
     restart: "no"
     ports:
-      - ${DOCKER_LISTEN:-8545}:8551
+      - ${DOCKER_LISTEN:-8545}:8545
     entrypoint:
       - /bin/bash
       - -c
       - |
         set -e
         mkdir -p /klaytn/log
-        cp /input/nodekey /klaytn/nodekey
-        cp -r /input/keystore /klaytn/keystore
+        cp -r /input/* /klaytn
         if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
           kcn init --datadir /klaytn /input/genesis.json 2>>/klaytn/log/kcnd.out
-        else
-          kcn init --datadir /klaytn /input/genesis.json
-        fi
-
-        if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
           VERBOSITY=2 # WARN
         else
+          kcn init --datadir /klaytn /input/genesis.json
           VERBOSITY=4 # DEBUG
         fi
 
         nohup -- kcn \
           --datadir /klaytn \
           --verbosity $$VERBOSITY \
-          --netrestrict "127.0.0.1/32" --nodiscover --bootnodes "127.0.0.1" \
+          --gcmode archive --state.block-interval 1 \
+          --netrestrict "127.0.0.1/32" --nodiscover \
           --ipcpath /klaytn/klay.ipc \
-          --rpc --rpcvhosts "*" --rpccorsdomain "*" --rpcaddr "0.0.0.0" --rpcport 8551 \
+          --rpc --rpcvhosts "*" --rpccorsdomain "*" --rpcaddr "0.0.0.0" --rpcport 8545 \
           --rpcapi "admin,debug,eth,governance,istanbul,klay,net,personal,rpc,txpool,web3" \
+          --unlock `cat /klaytn/account_addrs` --password /klaytn/password \
           2>>/klaytn/log/kcnd.out &
 
         set +e
@@ -41,9 +38,6 @@ services:
           sleep 0.1
         done
         echo "node started."
-
-        ken attach /klaytn/klay.ipc --exec \
-          "personal.listAccounts.forEach(function(a){ personal.unlockAccount(a, '', 0) })" >/dev/null
 
         if [ ${DOCKER_DEBUG:-0} -eq 0 ]; then
           tail -n 0 -F /klaytn/log/kcnd.out # do not print previous logs

@@ -1,11 +1,11 @@
 import type ethers from "ethers";
-import _ from "lodash";
+import { BigNumber, Wallet } from "ethers";
 import fs from "fs";
+import { task } from "hardhat/config";
+import _ from "lodash";
 import path from "path";
 import process from "process";
-import { BigNumber, Wallet } from "ethers";
-import { task } from "hardhat/config";
-import { PluginError, runDockerCompose } from "./helpers";
+import { PluginError, defaultDerivationPath, defaultMnemonic, deriveAccounts, runDockerCompose } from "../helpers";
 
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 
@@ -17,17 +17,17 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
   .addOptionalParam("host", "HTTP JSON-RPC hostname", "0.0.0.0")
   .addOptionalParam("port", "HTTP JSON-RPC port", "8545")
   .addOptionalParam("dockerImageId", "Docker image id", "klaytn/klaytn:latest")
-  .addOptionalParam("mnemonic", "Funded accounts mnemonic", "test test test test test test test test test test test junk")
-  .addOptionalParam("derivationPath", "Funded accounts derivation path", "m/44'/60'/0'/0/")
-  .addOptionalParam("balance", "Funded accounts balance in KLAY", "10000000")
+  .addOptionalParam("mnemonic", "Funded accounts mnemonic", defaultMnemonic)
+  .addOptionalParam("derivationPath", "Funded accounts derivation path", defaultDerivationPath)
+  .addOptionalParam("balance", "Accounts balance in KLAY", "10000000")
   .addOptionalParam("chainId", "Chain ID", "31337")
   .addOptionalParam("hardfork", "Hardfork level (none, istanbul, london, ethtxtype, magma, kore, shanghai, cancun, latest)", "latest")
-  .addOptionalParam("baseFee", "KIP-71 base fee in ston; If not specified, use Cypress default", "")
-  .addOptionalParam("unitPrice", "pre KIP-71 unit price in ston", "25")
+  .addOptionalParam("baseFee", "(since Magma) Fix the baseFee to constant; If not specified, dynamic baseFee in 25-750", "")
+  .addOptionalParam("unitPrice", "(before Magma) Unit price in ston", "25")
   .setAction(async (taskArgs) => {
     const { attach, debug, host, port, dockerImageId, balance } = taskArgs;
 
-    const dir = path.resolve(__dirname, "../fixtures/klaytn");
+    const dir = path.resolve(__dirname, "../../fixtures/klaytn");
     process.chdir(dir);
 
     if (attach) {
@@ -35,17 +35,38 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
       return;
     }
 
-    let accounts = generateAccounts(taskArgs);
-    let genesis = makeGenesis(taskArgs, accounts);
-    let nodekey = accounts[0].privateKey.substring(2); // strip 0x
-    let keystores = await generateKeystoreJson(accounts);
-    console.log("[+] Using genesis:", genesis);
+    const accounts = deriveAccounts({
+      mnemonic: taskArgs.mnemonic,
+      path: taskArgs.derivationPath
+    });
+
+    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
+    fs.mkdirSync("input/keystore", { recursive: true });
+
+    const genesis = makeGenesis(taskArgs, accounts);
+    fs.writeFileSync("input/genesis.json", genesis);
+
+    const nodekey = accounts[0].privateKey.substring(2); // strip 0x
+    fs.writeFileSync("input/nodekey", nodekey);
+
+    const account_addrs = _.join(_.map(accounts, (account) => account.address), ',');
+    fs.writeFileSync("input/account_addrs", account_addrs);
+
+    const password = "";
+    fs.writeFileSync("input/password", password);
+
+    const keystores = await Promise.all(_.map(accounts,
+      (account) => account.encrypt(password, { scrypt: { N: 2, p: 1 } })));
+      _.forEach(keystores, (keystore, idx) => {
+        // node will load keystore files in lexicographical order. So, suffix with index.
+        fs.writeFileSync(`input/keystore/keystore-${idx.toString().padStart(3, ' ')}`, keystore);
+      });
+
     console.log("[+] Using nodekey:", nodekey);
-    console.log("[+] Available accounts:");
+    console.log("[+] Available accounts (each having ${balance} KLAY):");
+    console.log("    address                                    private key");
     _.forEach(accounts, (account, idx) => {
-      let idxstr = ("#" + idx).padStart(3,' ');
-      console.log(`Account ${idxstr}: ${account.address} (${balance} KLAY)`);
-      console.log(`Private Key: ${account.privateKey}\n`);
+      console.log(`${idx.toString().padStart(3, '0')} ${account.address} ${account.privateKey}`);
     });
 
     const extraEnvs = {
@@ -61,15 +82,6 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
     console.log("    Press Ctrl+C to stop");
     console.log("");
 
-    // @ts-ignore: tsc does not recognize mkdirSync for some reason.
-    fs.mkdirSync("input/keystore", { recursive: true });
-    fs.writeFileSync("input/genesis.json", genesis);
-    fs.writeFileSync("input/nodekey", nodekey)
-    _.forEach(keystores, (json, idx) => {
-      let idxstr = idx.toString().padStart(3, '0');
-      fs.writeFileSync(`input/keystore/account_${idxstr}`, json);
-    });
-
     // Having an empty SIGINT handler prevents this task to quit on Ctrl+C.
     // This task is supposed to quit after docker-compose down.
     process.on('SIGINT', () => {});
@@ -77,32 +89,13 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
       // --force-recreate to remove old database and start over
       runDockerCompose("up --force-recreate");
     } catch (e) {
+      runDockerCompose("kill");
       runDockerCompose("down");
     }
   });
 
-function generateAccounts(taskArgs: any): ethers.Wallet[] {
-  const { mnemonic, derivationPath } = taskArgs;
-
-  let accounts: any[] = normalizeHardhatNetworkAccountsConfig({
-    mnemonic: mnemonic,
-    path: derivationPath,
-    initialIndex: 0,
-    count: 10,
-    accountsBalance: "0", // irrelevant here
-  });
-  return _.map(accounts, (account) => new Wallet(account.privateKey));
-}
-
-async function generateKeystoreJson(accounts: ethers.Wallet[]): Promise<string[]> {
-  let keystores: string[] = [];
-  for (var i = 0; i < accounts.length; i++) {
-    let json = await accounts[i].encrypt("", { scrypt: { N: 2, p: 1 } });
-    keystores.push(json);
-  }
-  return keystores;
-}
-
+// TODO: use homi to generate genesis.json
+// e.g. docker run --rm klaytn/klaytn -- homi setup
 type genesisAlloc = {
   [key: string]: {
     balance: string | undefined;
