@@ -45,8 +45,7 @@
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist/src/",
-    "dist/fixtures/",
+    "dist/",
     "src/",
     "LICENSE",
     "README.md"
