@@ -131,7 +131,7 @@ export class Create2Factory {
   }
 
   async _saveDeployment(name: string, deployment: DeploymentSubmission) {
-    const previous = await hre.deployments.getOrNull("Create2Factory");
+    const previous = await hre.deployments.getOrNull(name);
     if (previous != null) {
       return; // Do not overwrite existing deployment.
     }
