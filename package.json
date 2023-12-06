@@ -1,6 +1,6 @@
 {
   "name": "@klaytn/hardhat-utils",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Hardhat utility tasks",
   "repository": "github:klaytn/hardhat-utils",
   "author": "",
@@ -45,8 +45,7 @@
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist/src/",
-    "dist/fixtures/",
+    "dist/",
     "src/",
     "LICENSE",
     "README.md"
@@ -55,14 +54,10 @@
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/chai": "^4.1.7",
     "@types/fs-extra": "^5.0.4",
-    "@types/koa": "^2.13.6",
-    "@types/koa__router": "^12.0.0",
-    "@types/koa-static": "^4.0.2",
     "@types/lodash": "^4.14.191",
     "@types/mocha": "^5.2.6",
     "@types/node": "^8.10.38",
     "@types/readline-sync": "^1.4.4",
-    "@types/shelljs": "^0.8.11",
     "chai": "^4.2.0",
     "hardhat": "^2.17.1",
     "hardhat-deploy": "0.11.44",
@@ -81,7 +76,7 @@
     "hardhat-deploy": "^0.11.44"
   },
   "dependencies": {
-    "@klaytn/js-ext-core": "^0.9.7-beta",
+    "@klaytn/js-ext-core": "^0.9.8-beta",
     "lodash": "^4.17.21",
     "readline-sync": "^1.4.10"
   }
