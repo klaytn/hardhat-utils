@@ -18,7 +18,7 @@ task(TASK_BUNDLER, "Launch local Klaytn bundler")
   .setAction(async (taskArgs) => {
     const { host, port, dockerImageId, attachRemote, entrypoints, mnemonic, derivationPath, index } = taskArgs;
 
-    const dir = path.resolve(__dirname, "../../fixtures/bundler");
+    const dir = path.resolve(__dirname, "../fixtures/bundler");
     process.chdir(dir);
 
     const rpcUrl = await networkRpcUrlFromDocker(attachRemote);

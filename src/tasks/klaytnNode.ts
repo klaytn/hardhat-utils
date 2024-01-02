@@ -1,13 +1,11 @@
 import type ethers from "ethers";
-import { BigNumber, Wallet } from "ethers";
+import { BigNumber, } from "ethers";
 import fs from "fs";
 import { task } from "hardhat/config";
 import _ from "lodash";
 import path from "path";
 import process from "process";
 import { PluginError, defaultDerivationPath, defaultMnemonic, deriveAccounts, runDockerCompose } from "../helpers";
-
-import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 
 export const TASK_KLAYTN_NODE = "klaytn-node";
 
@@ -25,9 +23,9 @@ task(TASK_KLAYTN_NODE, "Launch local Klaytn node")
   .addOptionalParam("baseFee", "(since Magma) Fix the baseFee to constant; If not specified, dynamic baseFee in 25-750", "")
   .addOptionalParam("unitPrice", "(before Magma) Unit price in ston", "25")
   .setAction(async (taskArgs) => {
-    const { attach, debug, host, port, dockerImageId, balance } = taskArgs;
+    const { attach, debug, host, port, dockerImageId } = taskArgs;
 
-    const dir = path.resolve(__dirname, "../../fixtures/klaytn");
+    const dir = path.resolve(__dirname, "../fixtures/klaytn");
     process.chdir(dir);
 
     if (attach) {
