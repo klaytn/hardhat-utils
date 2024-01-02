@@ -1,10 +1,9 @@
 import { task } from "hardhat/config";
-import { HttpNetworkConfig } from "hardhat/types";
 import _ from "lodash";
 import path from "path";
 import process from "process";
 
-import { PluginError, networkRpcUrl, networkRpcUrlFromDocker, networkSupportsTracer, runDockerCompose } from "../helpers";
+import { networkRpcUrlFromDocker, networkSupportsTracer, runDockerCompose } from "../helpers";
 import "../type-extensions";
 
 export const TASK_EXPLORER = "explorer";
@@ -18,7 +17,7 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
   .setAction(async (taskArgs) => {
     const { host, port, debug, attachRemote, explorerVersion } = taskArgs;
 
-    const dir = path.resolve(__dirname, "../../fixtures/blockscout");
+    const dir = path.resolve(__dirname, "../fixtures/blockscout");
     process.chdir(dir);
 
     const rpcUrl = await networkRpcUrlFromDocker(attachRemote);
