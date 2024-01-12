@@ -15,8 +15,9 @@ task(TASK_BUNDLER, "Launch local Klaytn bundler")
   .addOptionalParam("mnemonic", "Bundler account mnemonic", "test test test test test test test test test test test junk")
   .addOptionalParam("derivationPath", "Bundler account derivation path", "m/44'/60'/0'/0/")
   .addOptionalParam("index", "Bundler account index under the derivation path", "0")
+  .addOptionalParam("privkey", "Bundler account private key without hex prefix. Has priority over mnemonic.")
   .setAction(async (taskArgs) => {
-    const { host, port, dockerImageId, attachRemote, entrypoints, mnemonic, derivationPath, index } = taskArgs;
+    const { host, port, dockerImageId, attachRemote, entrypoints, mnemonic, derivationPath, index, privkey} = taskArgs;
 
     const dir = path.resolve(__dirname, "../fixtures/bundler");
     process.chdir(dir);
@@ -28,7 +29,7 @@ task(TASK_BUNDLER, "Launch local Klaytn bundler")
       initialIndex: parseInt(index),
       count: 1,
     })
-    const privateKey = accounts[0].privateKey.substring(2);
+    const privateKey = privkey ?? accounts[0].privateKey.substring(2);
 
     const extraEnvs = {
       "DOCKER_IMAGE": dockerImageId,
