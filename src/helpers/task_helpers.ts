@@ -44,20 +44,61 @@ export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<Res
   const { name, func, args, from, to } = taskArgs;
 
   let contract: ethers.Contract;
-  if (!to || to == "") {
+  if (!to || to == "") { // 'to' address unspecified; lookup in deployments
     const deployment = await hre.deployments.get(name);
     contract = new hre.ethers.Contract(deployment.address, deployment.abi);
-  } else {
+  } else { // 'to' address specified
     contract = await hre.ethers.getContractAt(name, to);
   }
 
   const sender = await hre.ethers.getSigner(from);
 
+  const frag = contract.interface.getFunction(func);
+  const adjustedArgs = adjustFuncArgsType(frag, args);
+
   const unsignedTx = await contract
     .connect(sender)
-    .populateTransaction[func](...args);
+    .populateTransaction[func](...adjustedArgs);
 
   return { contract, sender, unsignedTx };
+}
+
+export function adjustFuncArgsType(frag: ethers.utils.FunctionFragment, args: any[]): any[] {
+  if (frag.inputs.length != args.length) {
+    throw new Error(`Argument count mismatch for ${frag.format()}: want ${frag.inputs.length}, have ${args.length}`);
+  }
+
+  for (let i = 0; i < args.length; i++) {
+    const ty = frag.inputs[i];
+    const arg = args[i];
+
+    // If an array is expected, try to split argument using comma.
+    if (ty.baseType == "array") {
+      args[i] = _.split(arg, ",");
+    }
+
+    // If a bool is expected, try to interpret the input as bool.
+    if (ty.baseType == "bool") {
+      args[i] = parseBool(arg);
+    }
+  }
+
+  return args;
+}
+
+function parseBool(arg: any): boolean {
+  if (_.isNumber(arg)) {
+    return !!arg;
+  }
+  if (_.isString(arg)) {
+    // Explicit string "false" and "true"
+    if (arg.toLowerCase() == "false") { return false; }
+    if (arg.toLowerCase() == "true") { return true; }
+
+    // Otherwise it must be a number
+    return !!Number(arg);
+  }
+  throw new Error(`Argument not boolean: '${arg}'`);
 }
 
 export interface NormalizeOpts {
