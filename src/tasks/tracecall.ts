@@ -1,0 +1,29 @@
+import { task } from "hardhat/config";
+import { Log } from "@ethersproject/abstract-provider";
+import _ from "lodash";
+
+import { FromArgType, resolveFuncArgs, normalizeCallResult, normalizeRpcResult, traceCall, formatTrace } from "../helpers";
+import "../type-extensions";
+
+export const TASK_TRACECALL = "tracecall";
+
+task(TASK_TRACECALL, "debug_traceCall a transaction")
+  .addOptionalParam("from", "Caller address or index", 0, FromArgType)
+  .addOptionalParam("to", "Target address. Loaded from deployments if empty.", "")
+  .addOptionalParam("tracer", "tracer type (call,revert,struct,stackup) (default: call)", "")
+  .addFlag("json", "Print raw trace in json")
+  .addPositionalParam("name", "Contract name (example: 'Counter', 'src/Lock.sol:Lock')")
+  .addPositionalParam("func", "Function name or signature (example: 'number()', 'balanceOf(address)')")
+  .addVariadicPositionalParam("args", "call arguments", [])
+  .setAction(async (taskArgs) => {
+    const { tracer, json } = taskArgs;
+    const { unsignedTx } = await resolveFuncArgs(taskArgs);
+
+    const trace = await traceCall(unsignedTx, tracer);
+  
+    if (json) {
+      console.log(JSON.stringify(trace, null, 2));
+    } else {
+      formatTrace(trace, tracer);
+    }
+  });

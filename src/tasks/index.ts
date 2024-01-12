@@ -10,4 +10,5 @@ export * from "./import";
 export * from "./klaytnNode";
 export * from "./mnemonic";
 export * from "./send";
+export * from "./tracecall";
 export * from "./uploadAbi";
