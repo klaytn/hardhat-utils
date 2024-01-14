@@ -53,14 +53,41 @@ export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<Res
 
   const sender = await hre.ethers.getSigner(from);
 
-  const frag = contract.interface.getFunction(func);
-  const adjustedArgs = adjustFuncArgsType(frag, args);
+  try {
+    const frag = contract.interface.getFunction(func);
+    const adjustedArgs = adjustFuncArgsType(frag, args);
 
-  const unsignedTx = await contract
-    .connect(sender)
-    .populateTransaction[func](...adjustedArgs);
+    const unsignedTx = await contract
+      .connect(sender)
+      .populateTransaction[func](...adjustedArgs);
+    return { contract, sender, unsignedTx };
+  } catch (e) {
+    // Fall back to explicit function signature
 
-  return { contract, sender, unsignedTx };
+    // build "function foo(uint a)" format
+    let strFrag = func;
+    if (!func.startsWith("function ")) {
+      strFrag = "function " + strFrag;
+    }
+    if (!func.includes("(")) {
+      strFrag = strFrag + "()" // heuristically append ()
+    }
+
+    const iface = new hre.ethers.utils.Interface([strFrag]); // improvised Interface with one function
+    const fragName = _.keys(iface.functions)[0]; // compact "foo(uint)" format
+    console.warn(`warn: function '${func}' not found in ${name}.. trying '${fragName}'`);
+
+    const frag = iface.getFunction(fragName);
+    const adjustedArgs = adjustFuncArgsType(frag, args);
+
+    const data = iface.encodeFunctionData(func, adjustedArgs);
+    const unsignedTx = {
+      from: sender.address,
+      to: contract.address,
+      data: data,
+    };
+    return { contract, sender, unsignedTx };
+  }
 }
 
 export function adjustFuncArgsType(frag: ethers.utils.FunctionFragment, args: any[]): any[] {
