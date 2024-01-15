@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/Counter.sol": {
+      "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.13;\n\ncontract Counter {\n    uint256 public number;\n\n    event SetNumber(uint256 newNumber);\n\n    function _setNumber(uint256 newNumber) private {\n        number = newNumber;\n        emit SetNumber(number);\n    }\n\n    function setNumber(uint256 newNumber) public {\n        _setNumber(newNumber);\n    }\n\n    function increment() public {\n        _setNumber(number + 1);\n    }\n\n    // To test various argument types\n    // Try hh send Counter setComplex 1,2,3 0xabcd \"zzz\" true\n    // Try hh send Counter setComplex 7 0x \"\" false\n    function setComplex(\n        uint256[] calldata arr,\n        bytes memory bs,\n        string memory str,\n        bool flag\n    ) public {\n        uint256 sum = 0;\n        for (uint i = 0; i < arr.length; i++) {\n            sum += arr[i];\n        }\n\n        uint256 newNumber = sum;\n        newNumber = newNumber * 16 + bs.length;\n        newNumber = newNumber * 16 + bytes(str).length;\n        newNumber = newNumber * 16 + (flag ? 1 : 0);\n        _setNumber(newNumber);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
