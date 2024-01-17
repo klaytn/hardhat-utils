@@ -6,7 +6,29 @@ export enum TracerType {
   CALL = "call",
 }
 
-export function resolveTracer(tracer: string) {
+export interface TraceConfig {
+  tracer?: string; // Tracer type. JS trace script not accepted.
+  timeout?: string; // Timeout in Go Duration
+  withContext?: boolean; // Enable memory, stack, storage
+  limit?: string; // Maximum number of opcodes
+}
+
+export interface TraceConfigAPI {
+  // vm.LogConfig
+  // https://github.com/klaytn/klaytn/blob/v1.12.0/blockchain/vm/logger.go#L49
+  disableMemory?: boolean;
+  disableStack?: boolean;
+  disableStorage?: boolean;
+  limit?: number; // number of opcodes
+
+  // tracers.TraceConfig
+  // https://github.com/klaytn/klaytn/blob/v1.12.0/node/cn/tracers/api.go#L175
+  tracer?: string | null; // Tracer type or JS trace script
+  timeout?: string; // Debug execution timeout in Go Duration
+  loggerTimeout?: string; // JSON marshal timeout in Go Duration
+}
+
+export function resolveTracer(tracer?: string) {
   if (!tracer || tracer.length == 0) {
     return { tracerType: TracerType.STRUCT, tracerArg: null };
   }
@@ -26,30 +48,46 @@ export function resolveTracer(tracer: string) {
 
     case "revert":
     case "reverttracer":
-      return { tracerType: TracerType.REVERT, tracerArg: "revertTracer" };  
+      return { tracerType: TracerType.REVERT, tracerArg: "revertTracer" };
   }
 
   throw PluginError(`Unknown tracer type '${tracer}' (allowed: struct, call, revert, stackup)`);
 }
 
-export async function traceCall(unsignedTx: any, tracer: string): Promise<any> {
-  const { tracerArg } = resolveTracer(tracer);
+export function resolveTraceConfig(config: TraceConfig): TraceConfigAPI {
+  const { tracerType, tracerArg } = resolveTracer(config.tracer);
+  const output: TraceConfigAPI = {tracer: tracerArg};
 
-  const config = {
-    tracer: tracerArg,
-  };
+  if (tracerType == TracerType.STRUCT && !config.withContext) {
+    output.disableMemory = true;
+    output.disableStack = true;
+    output.disableStorage = true;
+  }
+  if (tracerType == TracerType.STRUCT && config.limit) {
+    output.limit = parseInt(config.limit);
+  }
+  if (config.timeout) {
+    output.timeout = config.timeout;
+    output.loggerTimeout = config.timeout;
+  }
 
-  return await hre.ethers.provider.send("debug_traceCall", [unsignedTx, "latest", config]);
+  return output;
 }
 
-export async function traceTx(txid: any, tracer: string): Promise<any> {
-  const { tracerArg } = resolveTracer(tracer);
+export async function traceCall(unsignedTx: any, config: TraceConfig): Promise<any> {
+  const configAPI = resolveTraceConfig(config);
 
-  const config = {
-    tracer: tracerArg,
-  };
+  if (!unsignedTx.gas) {
+    // If !unsignedTx.gas, debug_traceCall will use gasLimit MaxUint63, making the output unreadable.
+    unsignedTx.gas = hre.ethers.utils.hexValue(1e10);
+  }
+  return await hre.ethers.provider.send("debug_traceCall", [unsignedTx, "latest", configAPI]);
+}
 
-  return await hre.ethers.provider.send("debug_traceTransaction", [txid, config]);
+export async function traceTx(txid: any, config: TraceConfig): Promise<any> {
+  const configAPI = resolveTraceConfig(config);
+
+  return await hre.ethers.provider.send("debug_traceTransaction", [txid, configAPI]);
 }
 
 export function formatTrace(trace: any, tracer: string): void {
@@ -84,15 +122,15 @@ export interface StructTrace {
 
 export function formatStructTrace(trace: StructTrace) {
   console.log(`StructTrace`);
-  console.log(`  gasUsed: ${toNumber(trace.gas)}, failed: ${trace.failed}, returnValue: '${trace.returnValue}'`);
-  console.log(`  pc    opcode             gasCost       gas`);
+  console.log(`  gasUsed: ${formatNumber(trace.gas)}, failed: ${trace.failed}, returnValue: '${trace.returnValue}'`);
+  console.log(`  pc    opcode              gasCost        gas`);
 
   for (const log of trace.structLogs) {
     const indent = "  ".repeat(log.depth);
-    const pc = toDecimal(log.pc, 5, '0');
+    const pc = formatNumber(log.pc, 5, '0');
     const op = log.op.padEnd(16, ' ');
-    const gasCost = toDecimal(log.gasCost, 9);
-    const gas = toDecimal(log.gas, 9);
+    const gasCost = formatNumber(log.gasCost, 10);
+    const gas = formatNumber(log.gas, 10);
     console.log(`${indent}${pc} ${op} ${gasCost} ${gas}`);
   }
 }
@@ -121,7 +159,7 @@ export function formatCallTrace(trace: CallFrame, depth: number = 0) {
 
   const indent = "  ".repeat(depth);
   console.log(`${indent}  ${trace.type} ${trace.to}`);
-  
+
   const value = hre.ethers.utils.formatEther(trace.value || 0);
   let error = trace.error || "";
   if (trace.revertReason) {
@@ -130,7 +168,7 @@ export function formatCallTrace(trace: CallFrame, depth: number = 0) {
   if (trace.reverted?.message) {
     error += ` (${trace.reverted.message})`;
   }
-  console.log(`${indent}  gasUsed: ${toNumber(trace.gasUsed)}, value: ${value}, error: '${error}'`);
+  console.log(`${indent}  gasUsed: ${formatNumber(trace.gasUsed)}, value: ${value}, error: '${error}'`);
 
   for (const call of trace.calls || []) {
     formatCallTrace(call, depth + 1);
@@ -138,16 +176,19 @@ export function formatCallTrace(trace: CallFrame, depth: number = 0) {
 }
 
 export function formatRevertTrace(trace: string) {
-  if (trace.length == 0) {
-    console.warn("warn: empty revert reason. Either not reverted or reverted without reason");
-  }
+  console.log(`RevertTrace`)
   console.log(`  revert reason: '${trace}'`);
+  if (trace.length == 0) {
+    console.warn("  empty revert reason means (a) not reverted or (b) reverted without reason");
+    console.warn("  try callTracer (--tracer call) for further details");
+  }
 }
 
-function toNumber(num: string | number): number {
-  return hre.ethers.BigNumber.from(num).toNumber();
-}
-
-function toDecimal(num: string | number, padlen: number = 0, fillString: string = ' '): string {
-  return toNumber(num).toString().padStart(padlen, fillString);
+function formatNumber(num: string | number, padlen: number = 0, fillString: string = ' '): string {
+  const BigNumber= hre.ethers.BigNumber;
+  let bn = BigNumber.from(num.toString());
+  if (bn.gt(BigNumber.from("0x7fff000000000000"))) {
+    bn = bn.sub(BigNumber.from("0x7fffffffffffffff"));
+  }
+  return bn.toString().padStart(padlen, fillString);
 }
