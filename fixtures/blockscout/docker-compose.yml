@@ -44,6 +44,10 @@ services:
         tail -f logs/prod/backend.log
     env_file:
       - "./envs/common-blockscout.env"
+    environment:
+      ETHEREUM_JSONRPC_HTTP_URL: ${DOCKER_RPC_HTTP_URL:-http://host.docker.internal:8545/}
+      ETHEREUM_JSONRPC_TRACE_URL: ${DOCKER_RPC_HTTP_URL:-http://host.docker.internal:8545/}
+      INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER: ${DOCKER_DISABLE_TRACER:-true}
 
   frontend:
     image: ghcr.io/blockscout/frontend:latest
@@ -70,4 +74,4 @@ services:
       BACK_PROXY_PASS: ${BACK_PROXY_PASS:-http://backend:4000}
       FRONT_PROXY_PASS: ${FRONT_PROXY_PASS:-http://frontend:3000}
     ports:
-      - 4000:80
+      - ${DOCKER_LISTEN:-4000}:80
