@@ -117,6 +117,8 @@ export interface StructLog {
   op: string; // opcode name
   gas: number; // remaining
   gasCost: number; // spent on this opcode
+  computation?: number; // cumulative
+  computationCost?: number; // spent on this opcode
   depth: number;
 }
 
@@ -130,7 +132,7 @@ export interface StructTrace {
 export function formatStructTrace(trace: StructTrace) {
   console.log(`StructTrace`);
   console.log(`  gasUsed: ${formatNumber(trace.gas)}, failed: ${trace.failed}, returnValue: '${trace.returnValue}'`);
-  console.log(`  pc    opcode              gasCost        gas`);
+  console.log(`  pc    opcode              gasCost    gasLeft     ccCost      ccSum`);
 
   for (const log of trace.structLogs) {
     const indent = "  ".repeat(log.depth);
@@ -138,7 +140,9 @@ export function formatStructTrace(trace: StructTrace) {
     const op = log.op.padEnd(16, ' ');
     const gasCost = formatNumber(log.gasCost, 10);
     const gas = formatNumber(log.gas, 10);
-    console.log(`${indent}${pc} ${op} ${gasCost} ${gas}`);
+    const computationCost = (log.computationCost !== undefined) ? formatNumber(log.computationCost, 10) : ' '.repeat(10);
+    const computation = (log.computation !== undefined) ? formatNumber(log.computation, 10) : ' '.repeat(10);
+    console.log(`${indent}${pc} ${op} ${gasCost} ${gas} ${computationCost} ${computation}`);
   }
 }
 
