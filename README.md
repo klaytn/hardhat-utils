@@ -31,6 +31,8 @@ npm install @klaytn/hardhat-utils
 		* [`hh deploy`](#hhdeploy)
 		* [`hh import`](#hhimport)
 		* [`hh send`](#hhsend)
+		* [`hh tracecall`](#hhtracecall)
+		* [`hh tracetx`](#hhtracetx)
 		* [`hh upload-abi`](#hhupload-abi)
 		* [`hh verify`](#hhverify)
 	* [Server launching tasks](#Serverlaunchingtasks)
@@ -316,6 +318,96 @@ hh send --to 0xaddr Counter increment
 
 # print unsigned transaction (in case private key is in another machine)
 hh send --unsigned Counter increment
+```
+
+#### <a name='hhtracecall'></a>`hh tracecall`
+
+Similar to `hh call` but calls the `debug_traceCall` API.
+
+```
+hh tracecall Counter setNumber 2
+```
+```
+CallTrace
+  CALL 0xbdab4f279fbd7886b75d8729ffa820f20d3e6523
+  gasUsed: 48440, value: 0.0, error: ''
+```
+You can customize the trace.
+```sh
+# Simulate the call at a specific block number
+hh tracecall --block 1234 Counter setNumber 2
+
+# Use the {tracer: null} option, in which case the opcode-level StructLogger is used.
+hh tracecall --network localhost --tracer struct Counter setNumber 2
+
+# Use the {tracer: "callTracer"} option, where internal transaction calls are traced.
+hh tracecall --network localhost --tracer call Counter setNumber 2
+
+# Use the {tracer: "revertTracer"} option, where the revert reason is printed, if any.
+hh tracecall --network localhost --tracer revert Counter setNumber 2
+
+# Use the StackUp bundler trace scripts BundlerCollectorTracer.js and BundlerExecutionTracer.js
+# https://github.com/stackup-wallet/stackup-bundler/tree/main/pkg/tracer
+hh tracecall --network localhost --tracer stackupcol Counter setNumber 2
+hh tracecall --network localhost --tracer stackupexe Counter setNumber 2
+```
+Trace output examples:
+```
+# --tracer struct
+StructTrace
+  gasUsed: 48440, failed: false, returnValue: ''
+  pc    opcode              gasCost    gasLeft     ccCost     ccLeft
+  00000 PUSH1                     3 9999975400        120  149999880
+  00002 PUSH1                     3 9999975397        120  149999760
+  00004 MSTORE                   12 9999975394        288  149999472
+  00005 CALLVALUE                 2 9999975382        149  149999323
+  00006 DUP1                      3 9999975380        190  149999133
+
+# --tracer call
+CallTrace
+  CALL 0x72df0a4521a17987742112c226353c4e299bf3ab
+  gasUsed: 530313, value: 0.0, error: ''
+    DELEGATECALL 0x6eeade4e5b9497747ac79053503b76b09ff248a9
+    gasUsed: 498261, value: 0.0, error: ''
+      STATICCALL 0xc8452baba9c02efb47eada8e2308e229ba2ea749
+      gasUsed: 7716, value: 0.0, error: ''
+        DELEGATECALL 0xf802b2bba4865714525fe5c5484467371efc391c
+        gasUsed: 264, value: 0.0, error: ''
+      CALL 0xc8452baba9c02efb47eada8e2308e229ba2ea749
+      gasUsed: 3753, value: 0.0, error: ''
+
+# --tracer revert
+RevertTrace
+  revert reason: 'Pausable: paused'
+```
+
+#### <a name='hhtracetx'></a>`hh tracetx`
+
+Calls the `debug_traceTransaction` API for the given transaction hash.
+
+```
+hh --network baobab tracetx --tracer revert 0xdc0d176de3aeaa396fb558c8ce6d6d9718d979e455c60e5131dcada512b5e5dd
+```
+```
+RevertTrace
+  revert reason: 'Pausable: paused'
+```
+
+You can customize the trace.
+```sh
+# Use the {tracer: null} option, in which case the opcode-level StructLogger is used.
+hh tracetx --network baobab --tracer struct 0xdc0d176de3aeaa396fb558c8ce6d6d9718d979e455c60e5131dcada512b5e5dd
+
+# Use the {tracer: "callTracer"} option, where internal transaction calls are traced.
+hh tracetx --network baobab --tracer call 0xdc0d176de3aeaa396fb558c8ce6d6d9718d979e455c60e5131dcada512b5e5dd
+
+# Use the {tracer: "revertTracer"} option, where the revert reason is printed, if any.
+hh tracetx --network baobab --tracer revert 0xdc0d176de3aeaa396fb558c8ce6d6d9718d979e455c60e5131dcada512b5e5dd
+
+# Use the StackUp bundler trace scripts BundlerCollectorTracer.js and BundlerExecutionTracer.js
+# https://github.com/stackup-wallet/stackup-bundler/tree/main/pkg/tracer
+hh tracetx --network baobab --tracer stackupcol 0xdc0d176de3aeaa396fb558c8ce6d6d9718d979e455c60e5131dcada512b5e5dd
+hh tracetx --network baobab --tracer stackupexe  0xdc0d176de3aeaa396fb558c8ce6d6d9718d979e455c60e5131dcada512b5e5dd
 ```
 
 #### <a name='hhupload-abi'></a>`hh upload-abi`

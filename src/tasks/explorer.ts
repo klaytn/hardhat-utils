@@ -13,7 +13,6 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
   .addOptionalParam("port", "HTTP port", "4000")
   .addFlag("debug", "Print debug logs")
   .addFlag("attachRemote", "Allow attach to remote RPC endpoint (may incur costs)")
-  .addOptionalParam("explorerVersion", "Blockscout version (currently only supports 4.x.y)", "4.1.8")
   .setAction(async (taskArgs) => {
     const { host, port, debug, attachRemote, explorerVersion } = taskArgs;
 
@@ -25,7 +24,6 @@ task(TASK_EXPLORER, "Launch blockscout explorer")
     const supportsTracer = await networkSupportsTracer();
     const extraEnvs = {
       'DOCKER_RPC_HTTP_URL': rpcUrl,
-      'DOCKER_TAG': explorerVersion,
       'DOCKER_LISTEN': `${host}:${port}`,
       'DOCKER_DISABLE_TRACER': _.toString(!supportsTracer),
       "DOCKER_DEBUG": debug ? "1" : "0",
