@@ -1,10 +1,9 @@
 // Wrapper for https://github.com/Arachnid/deterministic-deployment-proxy
 // Based on https://github.com/eth-infinitism/account-abstraction/blob/main/src/Create2Factory.ts
-import { type Provider } from "@ethersproject/providers";
-import { type Signer } from "@ethersproject/abstract-signer";
-import { BigNumberish } from "@ethersproject/bignumber";
+import { type Provider, type TransactionResponse } from "@ethersproject/providers";
+import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
-import { hexConcat, hexlify, hexZeroPad, keccak256 } from 'ethers/lib/utils'
+import { hexConcat, hexlify, hexZeroPad, keccak256 } from 'ethers5/lib/utils'
 
 import { getArtifact } from "./artifact";
 import {DeploymentSubmission} from "hardhat-deploy/dist/types";
@@ -51,7 +50,7 @@ export class Create2Factory {
     const signer = await hre.deployments.getSigner(from_);
 
     // Top up fee to deployerAddress
-    const balance = await this.provider.getBalance(Create2Factory.deployerAddress);
+    const balance = BigNumber.from(await this.provider.getBalance(Create2Factory.deployerAddress));
     if (balance.lt(Create2Factory.deployFee)) {
       const feeTx = await signer.sendTransaction({
         to: Create2Factory.deployerAddress,
@@ -62,7 +61,14 @@ export class Create2Factory {
     }
 
     // Send hardcoded deploy tx
-    const deployTx = await this.provider.sendTransaction(Create2Factory.deployRawTx);
+    let deployTx: TransactionResponse;
+    if (this.provider.sendTransaction) {
+      deployTx = await this.provider.sendTransaction(Create2Factory.deployRawTx);
+    } else if (this.provider.broadcastTransaction) {
+      deployTx = await this.provider.broadcastTransaction(Create2Factory.deployRawTx);
+    } else {
+      throw "cannot send raw transaction; unsupported by provider";
+    }
     process.stdout.write(`deploying "Create2Factory" (tx: ${deployTx.hash})...: `);
     const deployRc = await deployTx.wait();
     console.log(`deployed at ${Create2Factory.contractAddress} with ${deployRc.gasUsed} gas`);

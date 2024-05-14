@@ -51,7 +51,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@types/chai": "^4.1.7",
     "@types/fs-extra": "^5.0.4",
     "@types/lodash": "^4.14.191",
@@ -70,13 +70,9 @@
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^4.9.0"
   },
-  "peerDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "hardhat": "^2.17.1",
-    "hardhat-deploy": "^0.11.44"
-  },
   "dependencies": {
     "@klaytn/js-ext-core": "^0.9.8-beta",
+    "ethers5": "npm:ethers@^5.7.2",
     "lodash": "^4.17.21",
     "readline-sync": "^1.4.10"
   }

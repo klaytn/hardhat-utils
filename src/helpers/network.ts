@@ -1,3 +1,4 @@
+import { ethers } from "ethers5";
 import { HttpNetworkConfig } from "hardhat/types";
 import { PluginError } from ".";
 
@@ -34,7 +35,7 @@ export async function networkRpcUrlFromDocker(attachRemote: boolean): Promise<st
 export async function networkSupportsTracer(): Promise<boolean> {
   try {
     await hre.ethers.provider.send("debug_traceTransaction",
-      [hre.ethers.constants.HashZero, {tracer: "callTracer"}]);
+      [ethers.constants.HashZero, {tracer: "callTracer"}]);
     return true;
   } catch (e: any) {
     if (e instanceof Error) {

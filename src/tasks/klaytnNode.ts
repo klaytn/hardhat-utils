@@ -1,5 +1,5 @@
-import type ethers from "ethers";
-import { BigNumber, } from "ethers";
+import { ethers } from "ethers5";
+import { BigNumber } from "@ethersproject/bignumber";
 import fs from "fs";
 import { task } from "hardhat/config";
 import _ from "lodash";
@@ -165,7 +165,7 @@ function makeGenesis(taskArgs: any, accounts: ethers.Wallet[]): string {
     + cnAddr.substring(2)
     + "b8410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0";
 
-  let balanceHex = hre.ethers.utils.parseEther(taskArgs.balance).toHexString();
+  let balanceHex = ethers.utils.parseEther(taskArgs.balance).toHexString();
   let alloc: genesisAlloc = {};
   _.forEach(accounts, (account) => {
     alloc[account.address] = { balance: balanceHex };

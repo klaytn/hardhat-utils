@@ -1,14 +1,14 @@
-import ethers from "ethers";
+import { ethers } from "ethers5";
 import { Artifact } from "hardhat/types";
 import _ from "lodash";
 
 // Stringify an ABI to JSON or human-readable format.
 // The ABI can be anything that is accepted by ethers.utils.Interface.
 export async function stringifyAbi(abi: any, json = true): Promise<any> {
-  const iface = new hre.ethers.utils.Interface(abi);
+  const iface = new ethers.utils.Interface(abi);
 
   // See all FormatTypes: https://github.com/ethers-io/ethers.js/blob/v5.7/packages/abi/src.ts/fragments.ts#L235
-  const formats = hre.ethers.utils.FormatTypes;
+  const formats = ethers.utils.FormatTypes;
 
   if (json) {
     return iface.format(formats.json);
@@ -66,17 +66,17 @@ export function make4bytesPostData(abis: any[]): any {
 // Docs: https://docs.openchain.xyz/
 export const URL_sigdb = "https://api.openchain.xyz/signature-database/v1/import";
 export function makeSigdbPostData(abis: any[]): any {
-  const formatType = hre.ethers.utils.FormatTypes.sighash;
+  const formatType = ethers.utils.FormatTypes.sighash;
 
   const functions: string[] = [];
   const events: string[] = [];
   for (const frag of abis) {
     if (frag.type == 'function') {
-      const ffrag = hre.ethers.utils.FunctionFragment.fromObject(frag);
+      const ffrag = ethers.utils.FunctionFragment.fromObject(frag);
       functions.push(ffrag.format(formatType));
     }
     if (frag.type == 'event') {
-      const efrag = hre.ethers.utils.EventFragment.fromObject(frag);
+      const efrag = ethers.utils.EventFragment.fromObject(frag);
       events.push(efrag.format(formatType));
     }
   }

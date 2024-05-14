@@ -1,3 +1,4 @@
+import { ethers } from "ethers5";
 import { PluginError } from "./misc";
 
 export enum TracerType {
@@ -86,7 +87,7 @@ export async function traceCall(unsignedTx: any, block: string, config: TraceCon
 
   if (!unsignedTx.gas) {
     // If !unsignedTx.gas, debug_traceCall will use gasLimit MaxUint63, making the output unreadable.
-    unsignedTx.gas = hre.ethers.utils.hexValue(1e10);
+    unsignedTx.gas = ethers.utils.hexValue(1e10);
   }
   return await hre.ethers.provider.send("debug_traceCall", [unsignedTx, block, configAPI]);
 }
@@ -171,7 +172,7 @@ export function formatCallTrace(trace: CallFrame, depth: number = 0) {
   const indent = "  ".repeat(depth);
   console.log(`${indent}  ${trace.type} ${trace.to}`);
 
-  const value = hre.ethers.utils.formatEther(trace.value || 0);
+  const value = ethers.utils.formatEther(trace.value || 0);
   let error = trace.error || "";
   if (trace.revertReason) {
     error += ` (${trace.revertReason})`;
@@ -196,7 +197,7 @@ export function formatRevertTrace(trace: string) {
 }
 
 function formatNumber(num: string | number, padlen: number = 0, fillString: string = ' '): string {
-  const BigNumber= hre.ethers.BigNumber;
+  const BigNumber= ethers.BigNumber;
   let bn = BigNumber.from(num.toString());
   if (bn.gt(BigNumber.from("0x7fff000000000000"))) {
     bn = bn.sub(BigNumber.from("0x7fffffffffffffff"));

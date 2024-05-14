@@ -6,7 +6,7 @@ import "./type-extensions";
 
 extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   if (!hre.ethers) {
-    throw PluginError("hardhat-ethers plugin not loaded. In your hardhat.config.js, please require or import '@nomiclabs/hardhat-ethers' before hardhat-utils");
+    throw PluginError("hardhat-ethers plugin not loaded. In your hardhat.config.js, please require or import '@nomicfoundation/hardhat-ethers' before hardhat-utils");
   }
   if (!hre.deployments) {
     throw PluginError("hardhat-deploy plugin not loaded. In your hardhat.config.js, please require or import 'hardhat-deploy' before hardhat-utils");

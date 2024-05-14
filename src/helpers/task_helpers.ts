@@ -1,4 +1,4 @@
-import type ethers from "ethers";
+import { ethers } from "ethers5";
 import _ from "lodash";
 import "../type-extensions";
 
@@ -46,12 +46,12 @@ export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<Res
   let contract: ethers.Contract;
   if (!to || to == "") { // 'to' address unspecified; lookup in deployments
     const deployment = await hre.deployments.get(name);
-    contract = new hre.ethers.Contract(deployment.address, deployment.abi);
+    contract = new ethers.Contract(deployment.address, deployment.abi);
   } else { // 'to' address specified
     contract = await hre.ethers.getContractAt(name, to);
   }
 
-  const sender = await hre.ethers.getSigner(from);
+  const sender = await hre.ethers.provider.getSigner(from);
 
   try {
     const frag = contract.interface.getFunction(func);
@@ -73,7 +73,7 @@ export async function resolveFuncArgs(taskArgs: FuncTaskCommonArgs): Promise<Res
       strFrag = strFrag + "()" // heuristically append ()
     }
 
-    const iface = new hre.ethers.utils.Interface([strFrag]); // improvised Interface with one function
+    const iface = new ethers.utils.Interface([strFrag]); // improvised Interface with one function
     const fragName = _.keys(iface.functions)[0]; // compact "foo(uint)" format
     console.warn(`warn: function '${func}' not found in ${name}.. trying '${fragName}'`);
 
@@ -150,11 +150,11 @@ export function normalizeRpcResult(obj: any, opts?: NormalizeOpts) {
 
 function normalizeItem(item: any, opts?: NormalizeOpts): any {
   if (item?.constructor.name == "BigNumber" || _.isNumber(item)) {
-    const num = hre.ethers.BigNumber.from(item);
+    const num = ethers.BigNumber.from(item);
     if (opts?.dec) {
       return num.toString();
     } else if (opts?.eth) {
-      return hre.ethers.utils.formatEther(num);
+      return ethers.utils.formatEther(num);
     } else {
       return num.toHexString();
     }

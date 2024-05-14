@@ -1,3 +1,4 @@
+import { ethers } from "ethers5";
 import { task } from "hardhat/config";
 import _ from "lodash";
 import * as _path from "path";
@@ -14,8 +15,8 @@ task(TASK_FAUCET, "Send some coins to other accounts")
   .setAction(async (taskArgs) => {
     const { from, to, amount } = taskArgs;
 
-    const sender = await hre.ethers.getSigner(from);
-    const value = hre.ethers.utils.parseEther(amount);
+    const sender = await hre.ethers.provider.getSigner(from);
+    const value = ethers.utils.parseEther(amount);
 
     const recipients: string[] = [];
     if (to == "") {
@@ -25,10 +26,10 @@ task(TASK_FAUCET, "Send some coins to other accounts")
       }
     } else {
       for (const token of _.split(to, ",")) {
-        if (hre.ethers.utils.isAddress(token)) { // address
+        if (ethers.utils.isAddress(token)) { // address
           recipients.push(token);
         } else if (/^\d+$/.test(token)) { // index
-          const signer = await hre.ethers.getSigner(_.toNumber(token) as any);
+          const signer = await hre.ethers.provider.getSigner(_.toNumber(token) as any);
           recipients.push(await signer.getAddress());
         } else {
           throw PluginError(`Not an address or index: ${token}`);

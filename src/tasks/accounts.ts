@@ -1,10 +1,9 @@
-import type ethers from "ethers"
-import fs from "fs";
+import { ethers } from "ethers5";
 import { task } from "hardhat/config";
 import _ from "lodash";
 import * as _path from "path";
 
-import { FromArgType, PluginError } from "../helpers";
+import { FromArgType } from "../helpers";
 import "../type-extensions";
 
 export const TASK_ACCOUNTS = "accounts";
@@ -19,13 +18,13 @@ task(TASK_ACCOUNTS, "Get infromation about active accounts")
     if (from == "") {
       signers = await hre.ethers.getSigners();
     } else {
-      signers = [await hre.ethers.getSigner(from)];
+      signers = [await hre.ethers.provider.getSigner(from)];
     }
 
     const out = [];
     for (const signer of signers) {
       const address = await signer.getAddress();
-      const balance = hre.ethers.utils.formatEther(
+      const balance = ethers.utils.formatEther(
         await hre.ethers.provider.getBalance(address)
       );
       out.push({ address, balance });
