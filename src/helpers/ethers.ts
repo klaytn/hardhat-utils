@@ -1,4 +1,4 @@
-import type ethers from "ethers";
+import { ethers } from "ethers5";
 import _ from "lodash";
 import { PluginError } from "./misc";
 import { HardhatNetworkAccountConfig, HardhatNetworkHDAccountsConfig } from "hardhat/types";
@@ -58,7 +58,7 @@ export const extendHardhatEthers: ProxyHandler<any> = new propOverrideProxyHandl
 let knownWallets: { [key: string]: string } = {};
 
 function createWallet(privateKey: string): ethers.Wallet {
-  return new hre.ethers.Wallet(privateKey);
+  return new ethers.Wallet(privateKey);
 }
 
 export async function getWallet(address: string): Promise<ethers.Wallet> {

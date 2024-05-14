@@ -1,10 +1,10 @@
-import "@nomiclabs/hardhat-ethers/internal/type-extensions";
-import "@nomiclabs/hardhat-ethers/types";
+import "@nomicfoundation/hardhat-ethers/internal/type-extensions";
+import "@nomicfoundation/hardhat-ethers/types";
 import "hardhat-deploy/dist/src/type-extensions";
 import "hardhat/types/config";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import type ethers from "ethers";
+import { Wallet } from "ethers5";
 
 declare module "hardhat/types/config" {
   export interface HardhatConfig {
@@ -13,10 +13,10 @@ declare module "hardhat/types/config" {
 
 // Extend `hre.ethers` next to the fields added by hardhat-ethers.
 // See https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-ethers/src/types/index.ts
-declare module "@nomiclabs/hardhat-ethers/types" {
+declare module "@nomicfoundation/hardhat-ethers/types" {
   interface HardhatEthersHelpers {
-    getWallet: (address: string) => Promise<ethers.Wallet>;
-    getWallets: () => Promise<ethers.Wallet[]>;
+    getWallet: (address: string) => Promise<Wallet>;
+    getWallets: () => Promise<Wallet[]>;
   }
 }
 

@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import _ from "lodash";
 
-import { FromArgType, resolveFuncArgs, normalizeCallResult, normalizeRpcResult } from "../helpers";
+import { FromArgType, resolveFuncArgs, normalizeCallResult } from "../helpers";
 import "../type-extensions";
 
 export const TASK_CALL = "call";

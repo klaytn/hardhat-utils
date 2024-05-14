@@ -1,5 +1,4 @@
-import { Wallet } from "ethers";
-import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
+import { Wallet } from "ethers5";
 import _ from "lodash";
 import path from "path";
 

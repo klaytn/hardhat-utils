@@ -85,19 +85,19 @@ npm install @klaytn/hardhat-utils
 
 This plugin depends on other plugins. Make sure to require or import them in your `hardhat.config.js` or `hardhat.config.ts`.
 
-- [@nomiclabs/hardhat-ethers](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
+- [@nomicfoundation/hardhat-ethers](https://www.npmjs.com/package/@nomicfoundation/hardhat-ethers)
 - [hardhat-deploy](https://www.npmjs.com/package/hardhat-deploy)
 
 ```
-npm install @nomiclabs/hardhat-ethers hardhat-deploy
+npm install @nomicfoundation/hardhat-ethers hardhat-deploy
 ```
 ```ts
 // hardhat.config.js
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 require("hardhat-deploy");
 
 // hardhat.config.ts
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
 import "hardhat-deploy";
 ```
 
